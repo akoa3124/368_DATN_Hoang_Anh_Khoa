@@ -63,7 +63,15 @@ function RechargeUser() {
         }
         if (paymentMethod === 'VNPAY') {
             const res = await requestPayments(data);
-            window.open(res.metadata, '_blank');
+            const redirectUrl =
+                typeof res.metadata === 'string'
+                    ? res.metadata
+                    : res.metadata?.url || res.metadata?.paymentUrl || res.metadata?.checkoutUrl;
+            if (redirectUrl) {
+                window.open(redirectUrl, '_blank');
+            } else {
+                console.error('Không nhận được URL VNPAY từ server', res.metadata);
+            }
         }
     };
 

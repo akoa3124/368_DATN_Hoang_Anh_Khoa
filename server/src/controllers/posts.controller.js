@@ -6,6 +6,8 @@ const { OK, Created } = require('../core/success.response');
 const { BadRequestError } = require('../core/error.response');
 const SendMailApprove = require('../utils/SendMail/SendMailApprove');
 const SendMailReject = require('../utils/SendMail/SendMailReject');
+const recommendationService = require('../services/recommendation.service');
+const { AiGenerateTagsAndSummary } = require('../utils/AISearch/AISearch');
 
 const pricePostVip = [
     { date: 3, price: 50000 },
@@ -18,6 +20,48 @@ const pricePostNormal = [
     { date: 7, price: 60000 },
     { date: 30, price: 1000000 },
 ];
+
+function buildBucket(value, buckets) {
+    for (const bucket of buckets) {
+        if (bucket.condition(value)) {
+            return bucket.label;
+        }
+    }
+    return 'other';
+}
+
+function buildPostFeatures({ price, area, location, category, options }) {
+    const normalizedLocation = location ? location.toString().trim().toLowerCase() : '';
+    const normalizedOptions = Array.isArray(options) ? options : [];
+
+    return {
+        priceBucket: buildBucket(price, [
+            { condition: (v) => v < 1000000, label: 'duoi-1-trieu' },
+            { condition: (v) => v >= 1000000 && v < 2000000, label: '1-2-trieu' },
+            { condition: (v) => v >= 2000000 && v < 3000000, label: '2-3-trieu' },
+            { condition: (v) => v >= 3000000 && v < 5000000, label: '3-5-trieu' },
+            { condition: (v) => v >= 5000000 && v < 7000000, label: '5-7-trieu' },
+            { condition: (v) => v >= 7000000 && v < 10000000, label: '7-10-trieu' },
+            { condition: (v) => v >= 10000000 && v < 15000000, label: '10-15-trieu' },
+            { condition: (v) => v >= 15000000, label: 'tren-15-trieu' },
+        ]),
+        areaBucket: buildBucket(area, [
+            { condition: (v) => v < 20, label: 'duoi-20' },
+            { condition: (v) => v >= 20 && v < 30, label: '20-30' },
+            { condition: (v) => v >= 30 && v < 50, label: '30-50' },
+            { condition: (v) => v >= 50 && v < 70, label: '50-70' },
+            { condition: (v) => v >= 70 && v < 90, label: '70-90' },
+            { condition: (v) => v >= 90, label: 'tren-90' },
+        ]),
+        locationBucket: normalizedLocation,
+        category: category ? category.toString().trim().toLowerCase() : '',
+        optionFlags: normalizedOptions.reduce((acc, option) => {
+            const key = option.toString().trim().toLowerCase().replace(/\s+/g, '_');
+            if (key) acc[key] = true;
+            return acc;
+        }, {}),
+    };
+}
 
 class controllerPosts {
     async createPost(req, res) {
@@ -69,6 +113,16 @@ class controllerPosts {
             throw new BadRequestError('Số dư không đủ');
         }
 
+        const metadata = await AiGenerateTagsAndSummary({
+            title,
+            description,
+            category,
+            location,
+            options,
+        });
+
+        const features = buildPostFeatures({ price, area, location, category, options });
+
         const post = await modelPost.create({
             title,
             description,
@@ -80,6 +134,9 @@ class controllerPosts {
             username,
             phone,
             options,
+            tags: metadata.tags,
+            summary: metadata.summary,
+            features,
             status: 'inactive',
             userId: id,
             endDate: endDate ? endDate : null,
@@ -277,31 +334,12 @@ class controllerPosts {
 
     async postSuggest(req, res) {
         const { id } = req.user;
-        const findUser = await modelUser.findById(id);
-        const address = findUser.address;
+        const recommendations = await recommendationService.getHybridRecommendations(id, 10);
 
-        if (address) {
-            // Lấy phần quận/huyện + tỉnh/thành
-            const addressParts = address.split(',');
-            const districtCity = addressParts.slice(-2).join(',').trim(); // "Hoàng Mai, Hà Nội"
-
-            // Tìm bài viết có location chứa "Hoàng Mai, Hà Nội"
-            const data = await modelPost.find({
-                location: { $regex: new RegExp(districtCity, 'i') },
-                status: 'active',
-            });
-
-            return new OK({
-                message: 'Post fetched successfully',
-                metadata: data.length ? data : await modelPost.find({}),
-            }).send(res);
-        } else {
-            const data = await modelPost.find({ status: 'active' });
-            return new OK({
-                message: 'Post fetched successfully',
-                metadata: data,
-            }).send(res);
-        }
+        return new OK({
+            message: 'Post fetched successfully',
+            metadata: recommendations,
+        }).send(res);
     }
 }
 

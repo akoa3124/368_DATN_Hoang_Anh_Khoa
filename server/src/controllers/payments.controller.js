@@ -82,6 +82,11 @@ class PaymentsController {
             new OK({ message: 'Thanh toán thông báo', metadata: response.data }).send(res);
         }
         if (typePayment === 'VNPAY') {
+            const amount = Number(amountUser);
+            if (!amount || amount <= 0) {
+                throw new BadRequestError('Số tiền không hợp lệ');
+            }
+
             const vnpay = new VNPay({
                 tmnCode: 'DH2F13SW',
                 secureSecret: 'NXZM3DWFR0LC4R5VBK85OJZS1UE9KI6F',
@@ -93,8 +98,8 @@ class PaymentsController {
             const uuid = uuidv4();
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const vnpayResponse = await vnpay.buildPaymentUrl({
-                vnp_Amount: amountUser, //
+            const vnpayPayload = {
+                vnp_Amount: amount,
                 vnp_IpAddr: '127.0.0.1', //
                 vnp_TxnRef: `${id}-${uuid}`,
                 vnp_OrderInfo: `nap tien ${id}`,
@@ -103,8 +108,16 @@ class PaymentsController {
                 vnp_Locale: VnpLocale.VN, // 'vn' hoặc 'en'
                 vnp_CreateDate: dateFormat(new Date()), // tùy chọn, mặc định là hiện tại
                 vnp_ExpireDate: dateFormat(tomorrow), // tùy chọn
-            });
-            new OK({ message: 'Thanh toán thông báo', metadata: vnpayResponse }).send(res);
+            };
+
+            console.log('VNPAY DEBUG payload:', vnpayPayload);
+            const vnpayResponse = await vnpay.buildPaymentUrl(vnpayPayload);
+            const paymentUrl =
+                typeof vnpayResponse === 'string'
+                    ? vnpayResponse
+                    : vnpayResponse?.url || vnpayResponse?.paymentUrl || vnpayResponse?.checkoutUrl || vnpayResponse;
+            console.log('VNPAY DEBUG paymentUrl:', paymentUrl);
+            new OK({ message: 'Thanh toán thông báo', metadata: paymentUrl }).send(res);
         }
     }
 

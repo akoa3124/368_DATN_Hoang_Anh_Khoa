@@ -69,4 +69,51 @@ async function AiSearch(question) {
     }
 }
 
-module.exports = { AiSearchKeyword, AiSearch };
+async function AiGenerateTagsAndSummary({ title, description, category, location, options }) {
+    try {
+        const prompt = `
+        Bạn là trợ lý gợi ý nội dung cho bài đăng phòng trọ tại Việt Nam.
+        Dưới đây là các thông tin về bài đăng:
+        - Tiêu đề: "${title}"
+        - Mô tả: "${description}"
+        - Loại: "${category}"
+        - Vị trí: "${location}"
+        - Tiện ích: "${Array.isArray(options) ? options.join(', ') : options || ''}"
+
+        Hãy tạo:
+        1. Một đoạn tóm tắt ngắn gọn (summary) không quá 120 ký tự.
+        2. Một danh sách tags/label ngắn gọn, khoảng 5-8 tags, phù hợp với nội dung bài đăng.
+
+        Trả về đúng định dạng JSON duy nhất như sau:
+        {
+          "summary": "...",
+          "tags": ["...", "...", ...]
+        }
+        `;
+
+        const result = await model.generateContent(prompt);
+        let text = result.response.text();
+        text = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(text);
+
+        if (!parsed.summary || !Array.isArray(parsed.tags)) {
+            throw new Error('AI không trả về định dạng mong muốn');
+        }
+
+        return {
+            summary: parsed.summary,
+            tags: parsed.tags.map((tag) => tag.toString().trim()),
+        };
+    } catch (err) {
+        console.error('Lỗi AI generate tags/summary:', err);
+        const fallbackTags = [category, location, ...((Array.isArray(options) ? options : []).slice(0, 5))]
+            .filter(Boolean)
+            .map((item) => item.toString().toLowerCase());
+        return {
+            summary: description?.slice(0, 120) || title || '',
+            tags: Array.from(new Set(fallbackTags)).slice(0, 8),
+        };
+    }
+}
+
+module.exports = { AiSearchKeyword, AiSearch, AiGenerateTagsAndSummary };

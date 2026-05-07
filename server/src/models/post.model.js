@@ -49,6 +49,25 @@ const modelPost = new Schema(
             type: mongoose.Schema.Types.Mixed,
             required: true,
         },
+        tags: {
+            type: [String],
+            default: [],
+        },
+        summary: {
+            type: String,
+            default: '',
+        },
+        features: {
+            priceBucket: { type: String, default: '' },
+            areaBucket: { type: String, default: '' },
+            locationBucket: { type: String, default: '' },
+            category: { type: String, default: '' },
+            optionFlags: {
+                type: Map,
+                of: Boolean,
+                default: {},
+            },
+        },
         status: {
             type: String,
             required: true,
