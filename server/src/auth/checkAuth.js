@@ -39,8 +39,27 @@ const authAdmin = async (req, res, next) => {
     }
 };
 
+const authOwner = async (req, res, next) => {
+    try {
+        const user = req.cookies.token;
+        if (!user) throw new BadUserRequestError('Bạn không có quyền truy cập');
+        const token = user;
+        const decoded = await verifyToken(token);
+        const { id } = decoded;
+        const findUser = await modelUser.findById(id);
+        if (!findUser || (findUser.role !== 'owner' && findUser.isAdmin !== true)) {
+            throw new BadUser2RequestError('Chỉ chủ nhà mới được thực hiện hành động này');
+        }
+        req.user = decoded;
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     asyncHandler,
     authUser,
     authAdmin,
+    authOwner,
 };

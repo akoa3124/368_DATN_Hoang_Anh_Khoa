@@ -1,7 +1,7 @@
 import classNames from 'classnames/bind';
 import styles from './RegisterUser.module.scss';
 import Header from '../../Components/Header/Header';
-import { Form, Input, Button, Tabs, Typography, message } from 'antd';
+import { Form, Input, Button, Tabs, Typography, message, Select } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, HeatMapOutlined } from '@ant-design/icons';
 
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
@@ -26,6 +26,7 @@ function RegisterUser() {
             password: values.password,
             phone: values.phone,
             address: values.address,
+            role: values.role || 'seeker',
         };
         try {
             const res = await requestRegister(data);
@@ -88,6 +89,17 @@ function RegisterUser() {
                                     rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
                                 >
                                     <Input prefix={<HeatMapOutlined />} placeholder="Địa chỉ" size="large" />
+                                </Form.Item>
+
+                                <Form.Item
+                                    name="role"
+                                    label="Vai trò"
+                                    rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+                                >
+                                    <Select placeholder="Chọn vai trò">
+                                        <Select.Option value="seeker">Người tìm phòng</Select.Option>
+                                        <Select.Option value="owner">Chủ nhà</Select.Option>
+                                    </Select>
                                 </Form.Item>
 
                                 <Form.Item

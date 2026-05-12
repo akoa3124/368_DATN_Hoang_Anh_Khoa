@@ -20,10 +20,10 @@ const { AiSearchKeyword } = require('../utils/AISearch/AISearch');
 
 class controllerUsers {
     async register(req, res) {
-        const { fullName, email, password, phone } = req.body;
+        const { fullName, email, password, phone, address, role } = req.body;
 
-        if (!fullName || !email || !password || !phone) {
-            throw new BadRequestError('Vui lòng nhập đày đủ thông tin');
+        if (!fullName || !email || !password || !phone || !address) {
+            throw new BadRequestError('Vui lòng nhập đầy đủ thông tin');
         }
         const user = await modelUser.findOne({ email });
         if (user) {
@@ -38,6 +38,9 @@ class controllerUsers {
                 password: passwordHash,
                 typeLogin: 'email',
                 phone,
+                address,
+                role: role === 'owner' ? 'owner' : 'seeker',
+                avatar: '',
             });
             await newUser.save();
             await createApiKey(newUser._id);
@@ -145,6 +148,10 @@ class controllerUsers {
                 fullName: dataToken.name,
                 email: dataToken.email,
                 typeLogin: 'google',
+                address: '',
+                phone: '',
+                avatar: '',
+                role: 'seeker',
             });
             await newUser.save();
             await createApiKey(newUser._id);

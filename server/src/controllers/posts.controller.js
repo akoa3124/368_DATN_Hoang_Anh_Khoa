@@ -80,6 +80,7 @@ class controllerPosts {
             endDate,
             typeNews,
             dateEnd,
+            roommate,
         } = req.body;
         if (
             !title ||
@@ -134,6 +135,7 @@ class controllerPosts {
             username,
             phone,
             options,
+            roommate: Boolean(roommate),
             tags: metadata.tags,
             summary: metadata.summary,
             features,
@@ -150,7 +152,7 @@ class controllerPosts {
     }
 
     async getPosts(req, res) {
-        const { category, priceRange, areaRange, typeNews } = req.query;
+        const { category, priceRange, areaRange, typeNews, roommate } = req.query;
 
         const filter = { status: 'active' };
 
@@ -160,6 +162,10 @@ class controllerPosts {
 
         if (typeNews) {
             filter.typeNews = typeNews;
+        }
+
+        if (roommate === 'true' || roommate === true) {
+            filter.roommate = true;
         }
 
         if (priceRange) {

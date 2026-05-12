@@ -68,6 +68,10 @@ const modelPost = new Schema(
                 default: {},
             },
         },
+        roommate: {
+            type: Boolean,
+            default: false,
+        },
         status: {
             type: String,
             required: true,

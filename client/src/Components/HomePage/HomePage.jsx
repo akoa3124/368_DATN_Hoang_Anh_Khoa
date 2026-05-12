@@ -25,6 +25,7 @@ function HomePage() {
     const [areaRange, setAreaRange] = useState(() => getQueryParam('areaRange') || '');
     // Default typeNews to 'vip' if not in URL
     const [typeNews, setTypeNews] = useState(() => getQueryParam('typeNews'));
+    const [roommate, setRoommate] = useState(() => getQueryParam('roommate') === 'true');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,6 +35,9 @@ function HomePage() {
                 areaRange,
                 typeNews,
             };
+            if (roommate) {
+                params.roommate = true;
+            }
             console.log('>>> Sending params to API:', params);
             const res = await requestGetPosts(params);
             setDataPost(res.metadata);
@@ -44,13 +48,14 @@ function HomePage() {
             if (priceRange) queryParams.set('priceRange', priceRange);
             if (areaRange) queryParams.set('areaRange', areaRange);
             if (typeNews) queryParams.set('typeNews', typeNews);
+            if (roommate) queryParams.set('roommate', 'true');
 
             const queryString = queryParams.toString();
             const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
             window.history.pushState({ path: newUrl }, '', newUrl);
         };
         fetchData();
-    }, [category, priceRange, areaRange, typeNews]);
+    }, [category, priceRange, areaRange, typeNews, roommate]);
 
     const [dataNewPost, setDataNewPost] = useState([]);
     const [dataPostSuggest, setDataPostSuggest] = useState([]);
@@ -79,6 +84,12 @@ function HomePage() {
                         </button>
                         <button onClick={() => setTypeNews('normal')} id={cx(typeNews === 'normal' && 'active')}>
                             Mới đăng
+                        </button>
+                        <button
+                            onClick={() => setRoommate((prev) => !prev)}
+                            id={cx(roommate && 'active')}
+                        >
+                            Tìm ở ghép
                         </button>
                     </div>
                 </div>

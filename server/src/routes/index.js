@@ -3,6 +3,7 @@ const postRoutes = require('./posts.routes');
 const paymentsRoutes = require('./payments.routes');
 const messengerRoutes = require('./messenger.routes');
 const favouriteRoutes = require('./favourite.routes');
+const reviewRoutes = require('./review.routes');
 
 const multer = require('multer');
 const path = require('path');
@@ -75,6 +76,10 @@ function routes(app) {
     app.post('/api/create-favourite', favouriteRoutes);
     app.post('/api/delete-favourite', favouriteRoutes);
     app.get('/api/get-favourite', favouriteRoutes);
+
+    //// reviews
+    app.post('/api/create-review', reviewRoutes);
+    app.get('/api/get-reviews', reviewRoutes);
 
     ///// uploads
     app.post('/api/upload-images', upload.array('images'), (req, res) => {

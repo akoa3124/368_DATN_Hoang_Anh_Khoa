@@ -16,12 +16,14 @@ import {
     requestDeleteFavourite,
     requestGetPostById,
     requestGetPostVip,
+    requestCreateReview,
+    requestGetReviews,
 } from '../../config/request';
 import { useStore } from '../../hooks/useStore';
 import { useSocket } from '../../hooks/useSocket';
 import Messager from '../../utils/Messager/Messager';
 import ChatButton from '../../utils/ChatButton/ChatButton';
-import { message } from 'antd';
+import { message, Rate, Input, Button } from 'antd';
 
 const cx = classNames.bind(styles);
 
@@ -37,6 +39,9 @@ function DetailPost() {
     const [userHeart, setUserHeart] = useState([]);
 
     const [postVip, setPostVip] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
 
     const fetchPost = async () => {
         const res = await requestGetPostById(id);
@@ -47,8 +52,18 @@ function DetailPost() {
         document.title = `${res.metadata.data.title} - PhongTro123`;
     };
 
+    const fetchReviews = async () => {
+        try {
+            const res = await requestGetReviews(id);
+            setReviews(res.metadata);
+        } catch (error) {
+            console.error('Lỗi lấy đánh giá:', error);
+        }
+    };
+
     useEffect(() => {
         fetchPost();
+        fetchReviews();
     }, [id]);
 
     useEffect(() => {
@@ -85,6 +100,25 @@ function DetailPost() {
             message.error(res.message);
         } catch (error) {
             message.error(error.response.data.message);
+        }
+    };
+
+    const handleSubmitReview = async () => {
+        try {
+            if (!rating) {
+                return message.error('Vui lòng chọn số sao');
+            }
+            const data = {
+                postId: post._id,
+                rating,
+                comment,
+            };
+            const res = await requestCreateReview(data);
+            message.success(res.message);
+            setComment('');
+            fetchReviews();
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Không thể gửi đánh giá');
         }
     };
 
@@ -131,6 +165,46 @@ function DetailPost() {
                                             <span>{option}</span>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            <div className={cx('review-section')}>
+                                <h2>Đánh giá & nhận xét</h2>
+                                <div className={cx('review-box')}>
+                                    <Rate value={rating} onChange={setRating} />
+                                    <Input.TextArea
+                                        rows={4}
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Viết nhận xét của bạn..."
+                                        style={{ marginTop: 12 }}
+                                    />
+                                    <Button type="primary" onClick={handleSubmitReview} style={{ marginTop: 12 }}>
+                                        Gửi đánh giá
+                                    </Button>
+                                </div>
+                                <div className={cx('review-list')}>
+                                    {reviews.length === 0 ? (
+                                        <p>Chưa có đánh giá nào.</p>
+                                    ) : (
+                                        reviews.map((review) => (
+                                            <div className={cx('review-item')} key={review._id}>
+                                                <div className={cx('review-user')}>
+                                                    <img
+                                                        src={review.user.avatar || userDefault}
+                                                        alt="avatar"
+                                                        className={cx('review-avatar')}
+                                                    />
+                                                    <div>
+                                                        <strong>{review.user.fullName}</strong>
+                                                        <div>{new Date(review.createdAt).toLocaleDateString()}</div>
+                                                    </div>
+                                                </div>
+                                                <Rate disabled value={review.rating} />
+                                                <p>{review.comment}</p>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>

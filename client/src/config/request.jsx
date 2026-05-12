@@ -167,9 +167,9 @@ export const requestGetFavourite = async () => {
 };
 
 export const requestGetPosts = async (params) => {
-    // Filter out parameters with empty string values
+    // Filter out parameters with empty string, undefined, or null values
     const filteredParams = Object.entries(params)
-        .filter(([key, value]) => value !== '')
+        .filter(([_, value]) => value !== '' && value !== undefined && value !== null)
         .reduce((acc, [key, value]) => {
             acc[key] = value;
             return acc;
@@ -196,6 +196,16 @@ export const requestGetRechargeUser = async () => {
 
 export const requestGetPostByUserId = async () => {
     const res = await request.get('/api/get-post-by-user-id');
+    return res.data;
+};
+
+export const requestCreateReview = async (data) => {
+    const res = await request.post('/api/create-review', data);
+    return res.data;
+};
+
+export const requestGetReviews = async (postId) => {
+    const res = await request.get('/api/get-reviews', { params: { postId } });
     return res.data;
 };
 

@@ -1,5 +1,13 @@
 # Checklist Lần 2 - Phongtro123
 
+## Tiến độ hiện tại (ước tính)
+- Tổng thể: **65%**
+- Frontend + Backend core: **80%**
+- AI metadata & AI search: **70%**
+- Recommendation / favourite: **65%**
+- Admin / approval / recharge: **75%**
+- Phần chưa hoàn thiện lớn: Docker, PostgreSQL, review/rating, export báo cáo, role Sinh viên/Chủ nhà.
+
 ## 1. Những phần đã có trong repo
 - Frontend React/Vite với giao diện tìm kiếm, trang chi tiết, trang quản lý người dùng.
 - Backend NodeJS/Express với API REST, xác thực JWT và Google OAuth.
@@ -27,12 +35,19 @@
 - LLM vẫn được sử dụng đúng hướng, repo tích hợp với Google Gemini (`@google/generative-ai`).
 - Thiết kế admin dashboard và quản lý bài đăng đã có, nhưng chưa có export báo cáo Excel/PDF.
 - Quy trình phê duyệt tin đăng hiện có, nhưng phân chia vai trò Sinh viên/Chủ nhà còn chung chung.
-- Đo lường độ chính xác AI với metric (Precision / Recall / F1).
 
 ## 4. Những phần còn thiếu
+- Docker / Docker Compose để container hóa toàn bộ ứng dụng.
 - Triển khai PostgreSQL hoặc chuẩn bị migration, dù hiện repo dùng MongoDB.
 - Hệ thống đánh giá / review phòng trọ.
 - Tính năng tìm người ở ghép chuyên biệt.
+- Export báo cáo Excel/PDF cho Admin.
+- Sơ đồ nghiệp vụ (BPMN / Use Case) và quy trình Ingest → Clean → Store.
+- Đo lường độ chính xác AI với metric (Precision / Recall / F1).
+- Tập dữ liệu, chia Train/Val/Test và phân tích lỗi mô hình.
+- Logging chuyên sâu (persistent logs, file logs hoặc hệ thống logging).
+- Quản lý vi phạm / báo cáo vi phạm cho Admin.
+- Bộ lọc khoảng cách đến trường và tìm kiếm bản đồ tương tác.
 - Phân định vai trò Sinh viên / Chủ nhà rõ ràng hơn ngoài admin/user.
 - Hoàn thiện recommendation engine thành mô hình gợi ý đủ độ chính xác.
 

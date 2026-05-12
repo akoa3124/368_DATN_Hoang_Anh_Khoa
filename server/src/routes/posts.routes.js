@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const { asyncHandler, authUser, authAdmin } = require('../auth/checkAuth');
+const { asyncHandler, authUser, authAdmin, authOwner } = require('../auth/checkAuth');
 
 const controllerPosts = require('../controllers/posts.controller');
 
-router.post('/api/create-post', authUser, asyncHandler(controllerPosts.createPost));
+router.post('/api/create-post', authOwner, asyncHandler(controllerPosts.createPost));
 router.get('/api/get-posts', asyncHandler(controllerPosts.getPosts));
 router.get('/api/get-post-by-id', asyncHandler(controllerPosts.getPostById));
 router.get('/api/get-post-by-user-id', authUser, asyncHandler(controllerPosts.getPostByUserId));

@@ -224,6 +224,7 @@ function AddPostForm({ onFinish, onCancel, initialValues }) {
                 endDate: endDate,
                 images: resImages.images,
                 dateEnd,
+                roommate: Boolean(values.roommate),
             };
 
             await requestCreatePost(data);
@@ -421,6 +422,10 @@ function AddPostForm({ onFinish, onCancel, initialValues }) {
                         ))}
                     </Row>
                 </Checkbox.Group>
+            </Form.Item>
+
+            <Form.Item name="roommate" valuePropName="checked">
+                <Checkbox>Tìm người ở ghép</Checkbox>
             </Form.Item>
 
             <Divider />
