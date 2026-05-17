@@ -123,6 +123,26 @@
 .messageContent {
     font-size: 0.9rem;
     line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.imageList {
+    margin: 8px 0 0;
+    padding-left: 18px;
+}
+
+.imageList li {
+    margin-bottom: 6px;
+}
+
+.imageList a {
+    color: #1e88e5;
+    text-decoration: none;
+}
+
+.imageList a:hover {
+    text-decoration: underline;
 }
 
 .inputForm {

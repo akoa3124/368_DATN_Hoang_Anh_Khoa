@@ -31,7 +31,12 @@ const Chatbot = () => {
 
             try {
                 const response = await requestChatbot({ question: userMessage });
-                setMessages((prev) => [...prev, { text: response, sender: 'bot' }]);
+                if (response && typeof response === 'object' && !Array.isArray(response)) {
+                    setMessages((prev) => [...prev, { sender: 'bot', jsonData: response }]);
+                } else {
+                    const botText = typeof response === 'string' ? response : JSON.stringify(response, null, 2);
+                    setMessages((prev) => [...prev, { text: botText, sender: 'bot' }]);
+                }
             } catch (error) {
                 setMessages((prev) => [
                     ...prev,
@@ -68,7 +73,30 @@ const Chatbot = () => {
                                     message.sender === 'user' ? styles.userMessage : styles.botMessage
                                 }`}
                             >
-                                <div className={styles.messageContent}>{message.text}</div>
+                                <div className={styles.messageContent}>
+                                    {message.jsonData ? (
+                                        <div>
+                                            {message.jsonData.images && message.jsonData.images.length > 0 ? (
+                                                <div>
+                                                    <strong>Danh sách URL ảnh:</strong>
+                                                    <ul className={styles.imageList}>
+                                                        {message.jsonData.images.map((url, idx) => (
+                                                            <li key={idx}>
+                                                                <a href={url} target="_blank" rel="noopener noreferrer">
+                                                                    {url}
+                                                                </a>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            ) : (
+                                                <div>Không tìm thấy ảnh nào.</div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        message.text
+                                    )}
+                                </div>
                             </div>
                         ))}
                         {isLoading && (
