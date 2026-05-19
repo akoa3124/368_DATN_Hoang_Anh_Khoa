@@ -122,32 +122,44 @@ class PaymentsController {
     }
 
     async checkPaymentMomo(req, res, next) {
-        const { orderInfo, resultCode, amount } = req.query;
+        console.log('MOMO callback payload:', {
+            method: req.method,
+            query: req.query,
+            body: req.body,
+        });
+        const { orderInfo, resultCode, errorCode, amount } = req.method === 'POST' ? req.body : req.query;
+        const statusCode = String(resultCode ?? errorCode ?? '').trim();
+        const amountValue = Number(amount || 0);
+        const userId = orderInfo?.split(' ')[2];
 
-        if (resultCode === '0') {
-            const result = orderInfo.split(' ')[2];
-            const findUser = await modelUser.findOne({ _id: result });
+        if (statusCode === '0' && userId && amountValue > 0) {
+            const findUser = await modelUser.findOne({ _id: userId });
             if (findUser) {
-                findUser.balance += Number(amount);
+                findUser.balance += amountValue;
                 await findUser.save();
+
+                await modelRechargeUser.create({
+                    userId: findUser._id,
+                    amount: amountValue,
+                    typePayment: 'MOMO',
+                    status: 'success',
+                });
+
                 const socket = global.usersMap.get(findUser._id.toString());
                 if (socket) {
                     socket.emit('new-payment', {
                         userId: findUser._id,
-                        amount: amount,
+                        amount: amountValue,
                         date: new Date(),
                         typePayment: 'MOMO',
                     });
-                    await modelRechargeUser.create({
-                        userId: findUser._id,
-                        amount: amount,
-                        typePayment: 'MOMO',
-                        status: 'success',
-                    });
-                    return res.redirect(`http://localhost:5173/trang-ca-nhan`);
                 }
+
+                return res.redirect('http://localhost:5173/trang-ca-nhan');
             }
         }
+
+        return res.redirect('http://localhost:5173/trang-ca-nhan?status=failed');
     }
 
     async checkPaymentVnpay(req, res) {

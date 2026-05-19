@@ -7,6 +7,8 @@ const controllerPayments = require('../controllers/payments.controller');
 
 router.post('/api/payments', authUser, asyncHandler(controllerPayments.payments));
 router.get('/api/check-payment-vnpay', asyncHandler(controllerPayments.checkPaymentVnpay));
-router.get('/api/check-payment-momo', asyncHandler(controllerPayments.checkPaymentMomo));
+router.route('/api/check-payment-momo')
+    .get(asyncHandler(controllerPayments.checkPaymentMomo))
+    .post(asyncHandler(controllerPayments.checkPaymentMomo));
 
 module.exports = router;

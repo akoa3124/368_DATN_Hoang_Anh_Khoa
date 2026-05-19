@@ -20,66 +20,12 @@ const storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 function routes(app) {
-    app.post('/api/register', userRoutes);
-    app.post('/api/login', userRoutes);
-    app.post('/api/login-google', userRoutes);
-    app.get('/api/auth', userRoutes);
-    app.get('/api/logout', userRoutes);
-    app.get('/api/refresh-token', userRoutes);
-    app.get('/api/recharge-user', userRoutes);
-    app.post('/api/update-user', userRoutes);
-    app.post('/api/change-password', userRoutes);
-
-    app.get('/api/get-users', userRoutes);
-    app.get('/api/get-admin-stats', userRoutes);
-    app.get('/api/get-recharge-stats', userRoutes);
-
-    app.get('/api/get-hot-search', userRoutes);
-    app.get('/api/search', userRoutes);
-
-    app.post('/api/add-search-keyword', userRoutes);
-    app.get('/api/get-search-keyword', userRoutes);
-
-    app.post('/api/forgot-password', userRoutes);
-    app.post('/api/reset-password', userRoutes);
-
-    /// posts
-    app.post('/api/create-post', postRoutes);
-    app.get('/api/get-posts', postRoutes);
-    app.get('/api/get-post-by-id', postRoutes);
-    app.get('/api/get-post-by-user-id', postRoutes);
-    app.get('/api/get-new-post', postRoutes);
-    app.get('/api/get-post-vip', postRoutes);
-    app.post('/api/delete-post', postRoutes);
-
-    //// admin post
-    app.get('/api/get-all-posts', postRoutes);
-    app.post('/api/approve-post', postRoutes);
-    app.post('/api/reject-post', postRoutes);
-
-    /// payments
-    app.post('/api/payments', paymentsRoutes);
-    app.get('/api/check-payment-vnpay', paymentsRoutes);
-    app.get('/api/check-payment-momo', paymentsRoutes);
-
-    /// post suggest
-    app.get('/api/post-suggest', postRoutes);
-
-    /// messenger
-    app.post('/api/create-message', messengerRoutes);
-    app.get('/api/get-messages', messengerRoutes);
-    app.get('/api/get-messages-by-user-id', messengerRoutes);
-    app.post('/api/mark-message-read', messengerRoutes);
-    app.post('/api/mark-all-messages-read', messengerRoutes);
-
-    //// favourite
-    app.post('/api/create-favourite', favouriteRoutes);
-    app.post('/api/delete-favourite', favouriteRoutes);
-    app.get('/api/get-favourite', favouriteRoutes);
-
-    //// reviews
-    app.post('/api/create-review', reviewRoutes);
-    app.get('/api/get-reviews', reviewRoutes);
+    app.use('/', userRoutes);
+    app.use('/', postRoutes);
+    app.use('/', paymentsRoutes);
+    app.use('/', messengerRoutes);
+    app.use('/', favouriteRoutes);
+    app.use('/', reviewRoutes);
 
     ///// uploads
     app.post('/api/upload-images', upload.array('images'), (req, res) => {
@@ -96,8 +42,6 @@ function routes(app) {
             image: `http://localhost:3000/uploads/images/${file.filename}`,
         });
     });
-
-    app.get('/admin', userRoutes);
 }
 
 module.exports = routes;
