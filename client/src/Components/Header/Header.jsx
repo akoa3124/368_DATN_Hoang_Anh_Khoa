@@ -2,8 +2,8 @@ import classNames from 'classnames/bind';
 import styles from './Header.module.scss';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/logo.svg';
-import { Dropdown, Menu, Avatar, Space } from 'antd';
-import { UserOutlined, LogoutOutlined, ProfileOutlined, SearchOutlined } from '@ant-design/icons';
+import { Dropdown, Menu, Avatar, Space, Drawer, Button } from 'antd';
+import { UserOutlined, LogoutOutlined, ProfileOutlined, SearchOutlined, MenuOutlined } from '@ant-design/icons';
 
 import { useStore } from '../../hooks/useStore';
 import { useState } from 'react';
@@ -19,6 +19,18 @@ function Header() {
     const navigate = useNavigate();
 
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [drawerVisible, setDrawerVisible] = useState(false);
+    const [drawerSearchValue, setDrawerSearchValue] = useState('');
+
+    const handleOpenDrawer = () => setDrawerVisible(true);
+    const handleCloseDrawer = () => setDrawerVisible(false);
+
+    const handleDrawerSearch = () => {
+        if (drawerSearchValue.trim()) {
+            navigate(`/search/${drawerSearchValue.trim()}`);
+            setDrawerVisible(false);
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -88,6 +100,9 @@ function Header() {
                     )}
                 </div>
                 <div className={cx('actions')}>
+                    <Button type="text" className={cx('mobile-menu-button')} onClick={handleOpenDrawer}>
+                        <MenuOutlined />
+                    </Button>
                     {dataUser._id ? (
                         <>
                             <Dropdown overlay={menu} placement="bottomRight">
@@ -115,6 +130,41 @@ function Header() {
                     )}
                 </div>
             </div>
+
+            <Drawer title="Menu điều hướng" placement="left" onClose={handleCloseDrawer} open={drawerVisible}>
+                <div className={cx('drawer-search')}>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm bài đăng..."
+                        value={drawerSearchValue}
+                        onChange={(e) => setDrawerSearchValue(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleDrawerSearch()}
+                    />
+                    <button type="button" onClick={handleDrawerSearch}>
+                        Tìm
+                    </button>
+                </div>
+                <div className={cx('drawer-nav')}>
+                    <Link to="/" onClick={handleCloseDrawer}>
+                        Trang chủ
+                    </Link>
+                    {dataUser._id && (
+                        <Link to="/trang-ca-nhan" onClick={handleCloseDrawer}>
+                            Trang cá nhân
+                        </Link>
+                    )}
+                    {!dataUser._id ? (
+                        <>
+                            <Link to="/login" onClick={handleCloseDrawer}>
+                                Đăng nhập
+                            </Link>
+                            <Link to="/register" onClick={handleCloseDrawer}>
+                                Đăng ký
+                            </Link>
+                        </>
+                    ) : null}
+                </div>
+            </Drawer>
         </div>
     );
 }

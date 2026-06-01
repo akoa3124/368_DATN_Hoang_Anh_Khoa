@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Table, Typography, Progress, Avatar, Tag, Tooltip } from 'antd';
-import { Column } from '@ant-design/plots';
+import { Column, Line } from '@ant-design/plots';
 import {
     UserOutlined,
     HomeOutlined,
@@ -32,6 +32,8 @@ function Dashboard() {
         revenueGrowth: 0,
     });
     const [postsData, setPostsData] = useState([]);
+    const [revenueData, setRevenueData] = useState([]);
+    const [activityData, setActivityData] = useState([]);
     const [recentTransactions, setRecentTransactions] = useState([]);
     const [topUsers, setTopUsers] = useState([]);
 
@@ -55,6 +57,8 @@ function Dashboard() {
 
                     // Update posts data for chart
                     setPostsData(res.metadata.postsData || []);
+                    setRevenueData(res.metadata.revenueData || []);
+                    setActivityData(res.metadata.activityData || []);
 
                     // Update recent transactions
                     setRecentTransactions(res.metadata.recentTransactions || []);
@@ -96,6 +100,54 @@ function Dashboard() {
             },
             posts: {
                 alias: 'Số tin',
+            },
+        },
+    };
+
+    const revenueChartConfig = {
+        data: revenueData,
+        xField: 'date',
+        yField: 'revenue',
+        smooth: true,
+        color: '#1890ff',
+        meta: {
+            date: { alias: 'Ngày' },
+            revenue: { alias: 'Doanh thu', formatter: (value) => `${(value / 1000).toLocaleString()}k VNĐ` },
+        },
+        tooltip: {
+            formatter: (datum) => ({
+                name: 'Doanh thu',
+                value: `${datum.revenue.toLocaleString('vi-VN')} VNĐ`,
+            }),
+        },
+        xAxis: {
+            label: {
+                autoHide: true,
+                autoRotate: false,
+            },
+        },
+    };
+
+    const activityChartConfig = {
+        data: activityData,
+        xField: 'date',
+        yField: 'users',
+        smooth: true,
+        color: '#52c41a',
+        meta: {
+            date: { alias: 'Ngày' },
+            users: { alias: 'Người dùng mới' },
+        },
+        tooltip: {
+            formatter: (datum) => ({
+                name: 'Người dùng mới',
+                value: datum.users,
+            }),
+        },
+        xAxis: {
+            label: {
+                autoHide: true,
+                autoRotate: false,
             },
         },
     };
@@ -308,6 +360,23 @@ function Dashboard() {
                                     </Tooltip>
                                 </div>
                             ))}
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row gutter={[16, 16]} className={cx('content-row')}>
+                <Col xs={24} lg={12}>
+                    <Card title="Doanh thu 7 ngày" className={cx('chart-card', 'revenue-chart')} loading={loading} bordered={false}>
+                        <div className={cx('chart-wrapper')}>
+                            <Line {...revenueChartConfig} />
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                    <Card title="Đăng ký mới 7 ngày" className={cx('chart-card', 'activity-chart')} loading={loading} bordered={false}>
+                        <div className={cx('chart-wrapper')}>
+                            <Line {...activityChartConfig} />
                         </div>
                     </Card>
                 </Col>

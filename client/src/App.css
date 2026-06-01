@@ -94,3 +94,20 @@ body {
 .ai-suggest:hover img {
     transform: scale(1.1);
 }
+
+@media (max-width: 992px) {
+    .main {
+        width: 100%;
+        padding: 0 16px;
+    }
+
+    .wrapper {
+        padding-top: 100px;
+    }
+
+    .messager {
+        bottom: 80px;
+        right: 10px;
+        width: auto;
+    }
+}

@@ -87,27 +87,24 @@ Frontend khởi chạy tại `http://localhost:5173`.
 
 ## Trạng thái hiện tại
 
-### Hoàn thành
-- Frontend cơ bản với tìm kiếm, chi tiết, quản lý bài đăng.
-- Backend API RESTful, xác thực người dùng và phân quyền admin.
-- Chức năng đăng bài, duyệt bài, xóa bài.
-- Tìm kiếm và lọc theo nhiều tiêu chí.
-- Hệ thống favourite.
-- Chat realtime.
-- AI Search và metadata tự động cho bài đăng.
-- Nạp tiền / recharge user.
-
-### Cần tiếp tục hoàn thiện
-- Hoàn thiện Hybrid Recommendation System theo đề cương.
-- Xây dựng hệ thống review/rating phòng trọ.
-- Thêm tính năng export báo cáo Excel/PDF.
-- Phân định rõ vai trò Sinh viên / Chủ nhà.
-- Container hóa với Docker / Docker Compose.
-- Cân nhắc chuyển hoặc bổ sung PostgreSQL theo đề cương.
-- Xây dựng logging chuyên sâu và báo cáo phân tích dữ liệu.
-- Hoàn thiện sơ đồ nghiệp vụ (BPMN / Use Case).
-- Thêm tính năng tìm người ở ghép.
-- Quản lý vi phạm / báo cáo vi phạm.
+### Đã hoàn thiện
+- Frontend:
+  - Giao diện tìm kiếm phòng trọ, trang chi tiết bài đăng và trang quản lý.
+  - Form đăng bài có hỗ trợ gợi ý nội dung AI.
+  - Hệ thống đăng nhập/đăng ký, quản lý thông tin người dùng và dashboard admin.
+- Backend:
+  - API RESTful với Express cho CRUD bài đăng, người dùng, yêu thích và quản lý hệ thống.
+  - Xác thực JWT và tích hợp Google OAuth cho đăng nhập.
+  - Quản lý duyệt tin, từ chối tin, xóa tin và phân quyền admin.
+  - Chat realtime với Socket.io giữa người dùng và chủ nhà.
+  - Tích hợp thanh toán điện tử VNPAY và MoMo cho nạp tiền.
+  - Hệ thống AI Search và tạo metadata tự động (tag, summary) cho bài đăng.
+- Recommendation & AI:
+  - Module recommendation ban đầu hoạt động với content-based và collaborative filtering.
+  - Sử dụng Gemini để hỗ trợ metadata bài đăng và tìm kiếm thông minh.
+- Hạ tầng & dữ liệu:
+  - Sử dụng MongoDB với Mongoose cho dữ liệu người dùng và bài đăng.
+  - Cấu trúc ứng dụng rõ ràng: `client/` cho frontend, `server/` cho backend.
 
 ## Công nghệ sử dụng
 
