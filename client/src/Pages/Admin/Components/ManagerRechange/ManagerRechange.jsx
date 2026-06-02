@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Space } from 'antd';
+import { Card, Row, Col, Statistic, Table, Space, Button } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import moment from 'moment';
-import axios from 'axios';
-import { requestGetRechargeStats } from '../../../../config/request';
+import { requestGetRechargeStats, requestExportReport } from '../../../../config/request';
 
 function ManagerRechange() {
     const [rechargeStats, setRechargeStats] = useState({
@@ -61,13 +60,13 @@ function ManagerRechange() {
             setRechargeStats({
                 totalTransactions: metadata.totalTransactions,
                 totalRevenue: metadata.totalRevenue,
-                recentTransactions: metadata.recentTransactions,
+                recentTransactions: metadata.recentTransactions?.length || 0,
                 transactionGrowth: metadata.transactionGrowth,
                 recentRevenue: metadata.recentRevenue,
                 revenueGrowth: metadata.revenueGrowth,
             });
 
-            setRechargeData(metadata.transactions);
+            setRechargeData(metadata.recentTransactions || []);
         } catch (error) {
             console.error('Error fetching recharge data:', error);
         } finally {
@@ -78,6 +77,22 @@ function ManagerRechange() {
     useEffect(() => {
         fetchRechargeData();
     }, []);
+
+    const handleExportTransactions = async () => {
+        try {
+            const blob = await requestExportReport({ type: 'transactions' });
+            const url = window.URL.createObjectURL(new Blob([blob], { type: 'text/csv' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'transactions-report.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     return (
         <div style={{ padding: '24px' }}>
@@ -101,6 +116,13 @@ function ManagerRechange() {
                                 formatter={(value) => `${value.toLocaleString('vi-VN')} VNĐ`}
                             />
                         </Card>
+                    </Col>
+                </Row>
+                <Row style={{ marginTop: 16, marginBottom: 16 }}>
+                    <Col span={24} style={{ textAlign: 'right' }}>
+                        <Button type="primary" onClick={handleExportTransactions}>
+                            Xuất báo cáo giao dịch
+                        </Button>
                     </Col>
                 </Row>
 

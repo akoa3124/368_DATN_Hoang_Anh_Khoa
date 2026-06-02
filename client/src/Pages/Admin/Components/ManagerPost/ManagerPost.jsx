@@ -11,7 +11,7 @@ import {
 import classNames from 'classnames/bind';
 import styles from './ManagerPost.module.scss';
 import { useEffect, useState } from 'react';
-import { requestGetAllPosts, requestApprovePost, requestRejectPost } from '../../../../config/request';
+import { requestGetAllPosts, requestApprovePost, requestRejectPost, requestExportReport } from '../../../../config/request';
 
 const cx = classNames.bind(styles);
 
@@ -171,6 +171,22 @@ function ManagerPost() {
         },
     ];
 
+    const handleExportPosts = async () => {
+        try {
+            const blob = await requestExportReport({ type: 'posts' });
+            const url = window.URL.createObjectURL(new Blob([blob], { type: 'text/csv' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'posts-report.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <div className={cx('manager-post')}>
             <Row gutter={[16, 16]}>
@@ -198,6 +214,13 @@ function ManagerPost() {
                             valueStyle={{ color: '#faad14' }}
                         />
                     </Card>
+                </Col>
+            </Row>
+            <Row style={{ marginTop: 16, marginBottom: 16 }}>
+                <Col span={24} style={{ textAlign: 'right' }}>
+                    <Button type="primary" onClick={handleExportPosts}>
+                        Xuất báo cáo bài viết
+                    </Button>
                 </Col>
             </Row>
 

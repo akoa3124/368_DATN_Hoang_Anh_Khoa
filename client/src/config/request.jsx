@@ -107,6 +107,14 @@ export const requestGetRechargeStats = async () => {
     return res.data;
 };
 
+export const requestExportReport = async (params) => {
+    const res = await request.get('/api/export-report', {
+        params,
+        responseType: 'blob',
+    });
+    return res.data;
+};
+
 //// posts
 
 export const requestUploadImages = async (data) => {
@@ -204,8 +212,28 @@ export const requestCreateReview = async (data) => {
     return res.data;
 };
 
+export const requestDeleteReview = async (data) => {
+    const res = await request.post('/api/delete-review', data);
+    return res.data;
+};
+
 export const requestGetReviews = async (postId) => {
     const res = await request.get('/api/get-reviews', { params: { postId } });
+    return res.data;
+};
+
+export const requestReportViolation = async (data) => {
+    const res = await request.post('/api/report-violation', data);
+    return res.data;
+};
+
+export const requestGetViolations = async (params) => {
+    const res = await request.get('/api/get-violations', { params });
+    return res.data;
+};
+
+export const requestResolveViolation = async (data) => {
+    const res = await request.post('/api/resolve-violation', data);
     return res.data;
 };
 

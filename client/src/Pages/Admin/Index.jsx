@@ -8,6 +8,7 @@ import {
     HomeOutlined,
     DollarOutlined,
     GlobalOutlined,
+    FileTextOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { requestGetAdmin } from '../../config/request';
@@ -18,6 +19,7 @@ import styles from './Index.module.scss';
 import ManagerUser from './Components/ManagerUser/ManagerUser';
 import ManagerPost from './Components/ManagerPost/ManagerPost';
 import ManagerRechange from './Components/ManagerRechange/ManagerRechange';
+import ManagerViolation from './Components/ManagerViolation/ManagerViolation';
 
 const { Header, Sider, Content } = Layout;
 const cx = classNames.bind(styles);
@@ -76,6 +78,11 @@ function Admin() {
             icon: <DollarOutlined />,
             label: 'Quản lý giao dịch',
         },
+        {
+            key: 'violations',
+            icon: <FileTextOutlined />,
+            label: 'Báo cáo vi phạm',
+        },
     ];
 
     return (
@@ -122,6 +129,7 @@ function Admin() {
                     {type === 'users' && <ManagerUser />}
                     {type === 'posts' && <ManagerPost />}
                     {type === 'transactions' && <ManagerRechange />}
+                    {type === 'violations' && <ManagerViolation />}
                 </Content>
             </Layout>
 

@@ -18,12 +18,14 @@ import {
     requestGetPostVip,
     requestCreateReview,
     requestGetReviews,
+    requestReportViolation,
+    requestDeleteReview,
 } from '../../config/request';
 import { useStore } from '../../hooks/useStore';
 import { useSocket } from '../../hooks/useSocket';
 import Messager from '../../utils/Messager/Messager';
 import ChatButton from '../../utils/ChatButton/ChatButton';
-import { message, Rate, Input, Button } from 'antd';
+import { message, Rate, Input, Button, Modal } from 'antd';
 
 const cx = classNames.bind(styles);
 
@@ -42,6 +44,8 @@ function DetailPost() {
     const [reviews, setReviews] = useState([]);
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
+    const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+    const [reportReason, setReportReason] = useState('');
 
     const fetchPost = async () => {
         const res = await requestGetPostById(id);
@@ -116,9 +120,39 @@ function DetailPost() {
             const res = await requestCreateReview(data);
             message.success(res.message);
             setComment('');
+            fetchPost();
             fetchReviews();
         } catch (error) {
             message.error(error.response?.data?.message || 'Không thể gửi đánh giá');
+        }
+    };
+
+    const handleReportViolation = async () => {
+        try {
+            if (!reportReason) {
+                return message.error('Vui lòng nhập lý do báo cáo');
+            }
+            const data = {
+                postId: post._id,
+                reason: reportReason,
+            };
+            const res = await requestReportViolation(data);
+            message.success(res.message);
+            setReportReason('');
+            setIsReportModalVisible(false);
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Không thể gửi báo cáo');
+        }
+    };
+
+    const handleDeleteReview = async (reviewId) => {
+        try {
+            const res = await requestDeleteReview({ reviewId });
+            message.success(res.message);
+            fetchReviews();
+            fetchPost();
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Không thể xóa đánh giá');
         }
     };
 
@@ -148,6 +182,15 @@ function DetailPost() {
                                 <div className={cx('property-meta')}>
                                     <div className={cx('price')}>{post?.price?.toLocaleString()} VNĐ/tháng</div>
                                     <div className={cx('area')}>{post?.area} m²</div>
+                                </div>
+                                <div className={cx('rating-summary')}>
+                                    <div className={cx('rating-value')}>
+                                        <Rate disabled value={post?.averageRating || 0} />
+                                        <span>{post?.averageRating ? `${post.averageRating}/5` : 'Chưa có đánh giá'}</span>
+                                    </div>
+                                    <div className={cx('rating-count')}>
+                                        {post?.reviewCount ? `${post.reviewCount} đánh giá` : '0 đánh giá'}
+                                    </div>
                                 </div>
                             </div>
 
@@ -202,6 +245,11 @@ function DetailPost() {
                                                 </div>
                                                 <Rate disabled value={review.rating} />
                                                 <p>{review.comment}</p>
+                                                {review.user._id === dataUser._id && (
+                                                    <Button type="link" danger onClick={() => handleDeleteReview(review._id)}>
+                                                        Xóa đánh giá
+                                                    </Button>
+                                                )}
                                             </div>
                                         ))
                                     )}
@@ -278,6 +326,12 @@ function DetailPost() {
                                     <FontAwesomeIcon icon={faHeart} />
                                     {userHeart.find((item) => item === dataUser._id) ? 'Đã lưu' : 'Lưu tin'}
                                 </button>
+                                <button className={cx('action-btn')}
+                                    onClick={() => setIsReportModalVisible(true)}
+                                >
+                                    <FontAwesomeIcon icon={faFlag} />
+                                    Báo cáo tin
+                                </button>
                                 <button className={cx('action-btn')}>
                                     <FontAwesomeIcon icon={faShareAlt} />
                                     Chia sẻ
@@ -307,6 +361,20 @@ function DetailPost() {
                     </div>
                 </div>
             </main>
+            <Modal
+                title="Báo cáo tin đăng"
+                open={isReportModalVisible}
+                onCancel={() => setIsReportModalVisible(false)}
+                onOk={handleReportViolation}
+                okText="Gửi báo cáo"
+            >
+                <Input.TextArea
+                    rows={4}
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    placeholder="Nhập lý do báo cáo vi phạm"
+                />
+            </Modal>
         </div>
     );
 }

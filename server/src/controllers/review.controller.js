@@ -41,6 +41,25 @@ class controllerReview {
         return new Created({ message: 'Đánh giá được lưu thành công', metadata: review }).send(res);
     }
 
+    async deleteReview(req, res) {
+        const { id } = req.user;
+        const { reviewId } = req.body;
+        if (!reviewId) {
+            throw new BadRequestError('Vui lòng cung cấp mã đánh giá');
+        }
+
+        const review = await modelReview.findById(reviewId);
+        if (!review) {
+            throw new BadRequestError('Đánh giá không tồn tại');
+        }
+        if (review.userId.toString() !== id.toString()) {
+            throw new BadRequestError('Bạn không có quyền xóa đánh giá này');
+        }
+
+        await modelReview.findByIdAndDelete(reviewId);
+        return new OK({ message: 'Xóa đánh giá thành công' }).send(res);
+    }
+
     async getReviewsByPost(req, res) {
         const { postId } = req.query;
         if (!postId) {

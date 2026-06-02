@@ -1,6 +1,7 @@
 const modelPost = require('../models/post.model');
 const modelUser = require('../models/users.model');
 const modelFavourite = require('../models/favourite.model');
+const modelReview = require('../models/review.model');
 
 const { OK, Created } = require('../core/success.response');
 const { BadRequestError } = require('../core/error.response');
@@ -217,11 +218,24 @@ class controllerPosts {
     async getPostById(req, res) {
         const { id } = req.query;
         const data = await modelPost.findById(id);
+        if (!data) {
+            throw new BadRequestError('Bài đăng không tồn tại');
+        }
+
         const findUser = await modelUser.findById(data.userId);
         const findFavourite = await modelFavourite.find({ postId: id });
+        const reviewStats = await modelReview.aggregate([
+            { $match: { postId: id } },
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 },
+                    avgRating: { $avg: '$rating' },
+                },
+            },
+        ]);
 
         const userFavourite = findFavourite.map((item) => item.userId);
-
         const lengthPost = await modelPost.countDocuments({ userId: data.userId });
         let statusUser = '';
         const socket = global.usersMap.get(findUser._id.toString());
@@ -241,12 +255,17 @@ class controllerPosts {
             status: statusUser,
         };
 
+        const reviewCount = reviewStats.length ? reviewStats[0].count : 0;
+        const averageRating = reviewStats.length ? Number(reviewStats[0].avgRating.toFixed(1)) : 0;
+
         return new OK({
             message: 'Post fetched successfully',
             metadata: {
                 data,
                 dataUser,
                 userFavourite,
+                reviewCount,
+                averageRating,
             },
         }).send(res);
     }
@@ -314,12 +333,14 @@ class controllerPosts {
     async approvePost(req, res) {
         const { id } = req.body;
         const findPost = await modelPost.findById(id);
-        const findUser = await modelUser.findById(findPost.userId);
         if (!findPost) {
             throw new BadRequestError('Post not found');
         }
+        const findUser = await modelUser.findById(findPost.userId);
         await modelPost.findByIdAndUpdate(id, { status: 'active' });
-        await SendMailApprove(findUser.email, findPost);
+        if (findUser) {
+            await SendMailApprove(findUser.email, findPost);
+        }
         return new OK({
             message: 'Duyệt bài viết thành công',
             metadata: findPost,
@@ -329,9 +350,14 @@ class controllerPosts {
     async rejectPost(req, res) {
         const { id, reason } = req.body;
         const findPost = await modelPost.findById(id);
+        if (!findPost) {
+            throw new BadRequestError('Post not found');
+        }
         const findUser = await modelUser.findById(findPost.userId);
         await modelPost.findByIdAndUpdate(id, { status: 'cancel' });
-        await SendMailReject(findUser.email, findPost, reason);
+        if (findUser) {
+            await SendMailReject(findUser.email, findPost, reason);
+        }
         return new OK({
             message: 'Từ chối bài viết thành công',
             metadata: findPost,
