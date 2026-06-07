@@ -68,10 +68,9 @@ function InfoUser() {
                     <div
                         style={{
                             textAlign: 'center',
-                            padding: '0 20px 20px',
+                            padding: '30px 20px',
                             background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
                             margin: '-20px -20px 20px -20px',
-                            padding: '30px 20px',
                             color: 'white',
                             width: '107%',
                         }}

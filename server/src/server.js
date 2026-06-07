@@ -1,12 +1,14 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const fs = require('fs');
+
+require('dotenv').config();
 
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
     cors: {
-        origin: process.env.CLIENT_URL,
+        origin: process.env.CLIENT_URL || 'http://localhost:3001',
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -14,8 +16,6 @@ const io = require('socket.io')(server, {
 });
 
 global.io = io;
-
-require('dotenv').config();
 
 const bodyParser = require('body-parser');
 const cookiesParser = require('cookie-parser');

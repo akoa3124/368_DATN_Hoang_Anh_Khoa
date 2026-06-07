@@ -9,6 +9,8 @@ import {
     DollarOutlined,
     GlobalOutlined,
     FileTextOutlined,
+    SearchOutlined,
+    BellOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { requestGetAdmin } from '../../config/request';
@@ -31,6 +33,28 @@ function Admin() {
     const navigate = useNavigate();
 
     const [type, setType] = useState('dashboard');
+    const [showNotifications, setShowNotifications] = useState(false);
+
+    const notifications = [
+        {
+            id: 1,
+            title: 'Có bài viết mới',
+            description: 'Một tin đăng mới vừa được đăng và chờ xét duyệt.',
+            time: '2 phút trước',
+        },
+        {
+            id: 2,
+            title: 'Giao dịch mới',
+            description: 'Một giao dịch nạp tiền đã được ghi nhận.',
+            time: '10 phút trước',
+        },
+        {
+            id: 3,
+            title: 'Báo cáo vi phạm mới',
+            description: 'Một báo cáo vi phạm mới cần bạn xử lý.',
+            time: '1 giờ trước',
+        },
+    ];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -114,15 +138,52 @@ function Admin() {
             <Layout>
                 <Header className={cx('header')}>
                     <div className={cx('header-left')}>
-                    {isMobile ? (
-                        <MenuUnfoldOutlined className={cx('trigger')} onClick={() => setDrawerOpen(true)} />
-                    ) : collapsed ? (
-                        <MenuUnfoldOutlined className={cx('trigger')} onClick={() => setCollapsed(!collapsed)} />
-                    ) : (
-                        <MenuFoldOutlined className={cx('trigger')} onClick={() => setCollapsed(!collapsed)} />
-                    )}
-                    {isMobile && <div className={cx('mobile-brand')}>Admin Portal</div>}
-                </div>
+                        {isMobile ? (
+                            <MenuUnfoldOutlined className={cx('trigger')} onClick={() => setDrawerOpen(true)} />
+                        ) : collapsed ? (
+                            <MenuUnfoldOutlined className={cx('trigger')} onClick={() => setCollapsed(!collapsed)} />
+                        ) : (
+                            <MenuFoldOutlined className={cx('trigger')} onClick={() => setCollapsed(!collapsed)} />
+                        )}
+                        <div className={cx('page-title')}>
+                            <h2>{type === 'dashboard' ? 'Bảng điều khiển' : type === 'users' ? 'Quản lý người dùng' : type === 'posts' ? 'Quản lý bài viết' : type === 'transactions' ? 'Quản lý giao dịch' : 'Báo cáo vi phạm'}</h2>
+                            <p>Thông tin tổng quan và hoạt động hệ thống</p>
+                        </div>
+                    </div>
+
+                    <div className={cx('header-right')}>
+                        <div className={cx('search-box')}>
+                            <SearchOutlined />
+                        </div>
+                        <div className={cx('notification')} onClick={() => setShowNotifications(!showNotifications)}>
+                            <BellOutlined />
+                            <span className={cx('badge')}>{notifications.length}</span>
+                        </div>
+                        {showNotifications && (
+                            <div className={cx('notification-panel')}>
+                                <div className={cx('notification-header')}>
+                                    <span>Thông báo mới</span>
+                                    <small>{notifications.length} mục</small>
+                                </div>
+                                {notifications.map((item) => (
+                                    <div key={item.id} className={cx('notification-item')}>
+                                        <div className={cx('notification-icon')}>
+                                            <BellOutlined />
+                                        </div>
+                                        <div className={cx('notification-content')}>
+                                            <strong>{item.title}</strong>
+                                            <p>{item.description}</p>
+                                            <small>{item.time}</small>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div className={cx('profile')}>
+                            <UserOutlined />
+                            <span>Admin</span>
+                        </div>
+                    </div>
                 </Header>
                 <Content className={cx('content')}>
                     {type === 'dashboard' && <Dashboard />}

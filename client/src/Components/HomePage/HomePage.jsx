@@ -59,13 +59,22 @@ function HomePage() {
 
     const [dataNewPost, setDataNewPost] = useState([]);
     const [dataPostSuggest, setDataPostSuggest] = useState([]);
+    const [suggestionsError, setSuggestionsError] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             const res = await requestGetNewPost();
-            const resSuggest = await requestPostSuggest();
             setDataNewPost(res.metadata);
-            setDataPostSuggest(resSuggest.metadata);
+
+            try {
+                const resSuggest = await requestPostSuggest();
+                setDataPostSuggest(resSuggest.metadata);
+                setSuggestionsError(false);
+            } catch (error) {
+                console.warn('Failed to fetch recommendations:', error);
+                setDataPostSuggest([]);
+                setSuggestionsError(true);
+            }
         };
         fetchData();
     }, []);
@@ -209,28 +218,40 @@ function HomePage() {
                 </div>
 
                 <div className={cx('filter-section')}>
-                    <h3>Gần bạn</h3>
+                    <h3>Gợi ý dành riêng cho bạn</h3>
+                    {suggestionsError && (
+                        <div className={cx('suggestion-note')}>
+                            Đăng nhập để nhận gợi ý phòng trọ phù hợp nhất.
+                        </div>
+                    )}
                     <div className={cx('new-posts')}>
-                        {dataPostSuggest.map((item) => (
-                            <Link to={`/chi-tiet-tin-dang/${item._id}`} key={item._id}>
-                                <div className={cx('post-item')}>
-                                    <div className={cx('post-image')}>
-                                        <img src={item.images[0]} alt="Studio apartment" />
-                                    </div>
-                                    <div className={cx('post-info')}>
-                                        <h4 className={cx('post-title')}>{item.title}</h4>
-                                        <div className={cx('post-meta')}>
-                                            <span className={cx('post-price')}>
-                                                {item.price.toLocaleString('vi-VN')} VNĐ
-                                            </span>
-                                            <span className={cx('post-time')}>
-                                                {dayjs(item.createdAt).format('DD/MM/YYYY')}
-                                            </span>
+                        {dataPostSuggest.length > 0 ? (
+                            dataPostSuggest.map((item) => (
+                                <Link to={`/chi-tiet-tin-dang/${item._id}`} key={item._id}>
+                                    <div className={cx('post-item')}>
+                                        <div className={cx('post-image')}>
+                                            <img src={item.images[0]} alt="Studio apartment" />
+                                        </div>
+                                        <div className={cx('post-info')}>
+                                            <div className={cx('suggestion-badge')}>
+                                                Gợi ý {Math.round((item.recommendationScore || 0) * 100)}%
+                                            </div>
+                                            <h4 className={cx('post-title')}>{item.title}</h4>
+                                            <div className={cx('post-meta')}>
+                                                <span className={cx('post-price')}>
+                                                    {item.price.toLocaleString('vi-VN')} VNĐ
+                                                </span>
+                                                <span className={cx('post-time')}>
+                                                    {dayjs(item.createdAt).format('DD/MM/YYYY')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </Link>
-                        ))}
+                                </Link>
+                            ))
+                        ) : (
+                            !suggestionsError && <p>Đang cập nhật gợi ý cho bạn. Hãy thử lưu vài tin để hệ thống phân tích tốt hơn.</p>
+                        )}
                     </div>
                 </div>
             </div>

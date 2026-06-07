@@ -5,7 +5,7 @@ import { faPhoneAlt, faShareAlt, faFlag, faMapMarkerAlt } from '@fortawesome/fre
 import { faHeart } from '@fortawesome/free-regular-svg-icons';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
 import userDefault from '../../assets/images/user-default.svg';
 
@@ -31,29 +31,41 @@ const cx = classNames.bind(styles);
 
 function DetailPost() {
     const [selectedImg, setSelectedImg] = useState('');
-
     const [user, setUser] = useState({});
-
     const [post, setPost] = useState({});
-
-    const { id } = useParams();
-
     const [userHeart, setUserHeart] = useState([]);
-
     const [postVip, setPostVip] = useState([]);
+    const [relatedPosts, setRelatedPosts] = useState([]);
     const [reviews, setReviews] = useState([]);
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [isReportModalVisible, setIsReportModalVisible] = useState(false);
     const [reportReason, setReportReason] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const { id } = useParams();
 
     const fetchPost = async () => {
-        const res = await requestGetPostById(id);
-        setPost(res.metadata.data);
-        setSelectedImg(res?.metadata?.data?.images[0]);
-        setUser(res?.metadata?.dataUser);
-        setUserHeart(res?.metadata?.userFavourite);
-        document.title = `${res.metadata.data.title} - PhongTro123`;
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await requestGetPostById(id);
+            const postData = res?.metadata?.data || {};
+            setPost(postData);
+            setSelectedImg(postData?.images?.[0] || '');
+            setUser(res?.metadata?.dataUser || {});
+            setUserHeart(res?.metadata?.userFavourite || []);
+            setRelatedPosts(res?.metadata?.relatedPosts || []);
+            if (postData.title) {
+                document.title = `${postData.title} - PhongTro123`;
+            }
+        } catch (fetchError) {
+            console.error('Lỗi lấy chi tiết bài đăng:', fetchError);
+            setError(fetchError?.response?.data?.message || 'Không thể tải bài đăng. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchReviews = async () => {
@@ -156,6 +168,29 @@ function DetailPost() {
         }
     };
 
+    if (loading) {
+        return (
+            <div className={cx('wrapper')}>
+                <main className={cx('container')}>
+                    <div className={cx('loading-message')}>Đang tải chi tiết bài đăng...</div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={cx('wrapper')}>
+                <main className={cx('container')}>
+                    <div className={cx('error-message')}>
+                        <h2>Lỗi</h2>
+                        <p>{error}</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className={cx('wrapper')}>
             <main className={cx('container')}>
@@ -163,7 +198,7 @@ function DetailPost() {
                     <div className={cx('left')}>
                         <div className={cx('slider-container')}>
                             <div className={cx('slide-item')}>
-                                <img src={selectedImg} alt="" />
+                                <img src={selectedImg || userDefault} alt="" />
                             </div>
                             <div className={cx('select-img')}>
                                 {post?.images?.map((image, index) => (
@@ -180,8 +215,10 @@ function DetailPost() {
                                     <span>{post?.location}</span>
                                 </div>
                                 <div className={cx('property-meta')}>
-                                    <div className={cx('price')}>{post?.price?.toLocaleString()} VNĐ/tháng</div>
-                                    <div className={cx('area')}>{post?.area} m²</div>
+                                    <div className={cx('price')}>
+                                        {post?.price ? `${post.price.toLocaleString()} VNĐ/tháng` : 'Giá chưa cập nhật'}
+                                    </div>
+                                    <div className={cx('area')}>{post?.area ? `${post.area} m²` : 'Diện tích chưa cập nhật'}</div>
                                 </div>
                                 <div className={cx('rating-summary')}>
                                     <div className={cx('rating-value')}>
@@ -245,7 +282,7 @@ function DetailPost() {
                                                 </div>
                                                 <Rate disabled value={review.rating} />
                                                 <p>{review.comment}</p>
-                                                {review.user._id === dataUser._id && (
+                                                {review.user._id === dataUser?._id && (
                                                     <Button type="link" danger onClick={() => handleDeleteReview(review._id)}>
                                                         Xóa đánh giá
                                                     </Button>
@@ -324,14 +361,14 @@ function DetailPost() {
                             <div className={cx('action-buttons')}>
                                 <button
                                     onClick={
-                                        userHeart.find((item) => item === dataUser._id)
+                                        dataUser?._id && userHeart.find((item) => item === dataUser._id)
                                             ? handleDeleteFavourite
                                             : handleCreateFavourite
                                     }
                                     className={cx('action-btn')}
                                 >
                                     <FontAwesomeIcon icon={faHeart} />
-                                    {userHeart.find((item) => item === dataUser._id) ? 'Đã lưu' : 'Lưu tin'}
+                                    {dataUser?._id && userHeart.find((item) => item === dataUser._id) ? 'Đã lưu' : 'Lưu tin'}
                                 </button>
                                 <button className={cx('action-btn')}
                                     onClick={() => setIsReportModalVisible(true)}
@@ -351,20 +388,46 @@ function DetailPost() {
                             {postVip.map((item, index) => (
                                 <div className={cx('listing-item')} key={index}>
                                     <div className={cx('listing-image')}>
-                                        <img src={item.images[0]} alt="Phòng trọ cao cấp" />
+                                        <img src={item.images?.[0] || userDefault} alt="Phòng trọ cao cấp" />
                                     </div>
                                     <div className={cx('listing-content')}>
                                         <h4 className={cx('listing-name')}>{item.title}</h4>
                                         <div className={cx('listing-price')}>
-                                            {item.price.toLocaleString()} VNĐ/tháng
+                                            {item.price ? `${item.price.toLocaleString()} VNĐ/tháng` : 'Giá chưa cập nhật'}
                                         </div>
                                         <div className={cx('listing-time')}>
-                                            {dayjs(item.createdAt).format('DD/MM/YYYY')}
+                                            {item.createdAt ? dayjs(item.createdAt).format('DD/MM/YYYY') : 'Chưa xác định'}
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
+                        {relatedPosts.length > 0 && (
+                            <div className={cx('featured-listings')}>
+                                <h3 className={cx('featured-title')}>Tin liên quan</h3>
+                                {relatedPosts.map((item) => (
+                                    <Link to={`/chi-tiet-tin-dang/${item._id}`} key={item._id}>
+                                        <div className={cx('listing-item')}>
+                                            <div className={cx('listing-image')}>
+                                                <img src={item.images[0] || userDefault} alt={item.title} />
+                                                <span className={cx('listing-tag')}>
+                                                    Gợi ý {Math.round((item.recommendationScore || 0) * 100)}%
+                                                </span>
+                                            </div>
+                                            <div className={cx('listing-content')}>
+                                                <h4 className={cx('listing-name')}>{item.title}</h4>
+                                                <div className={cx('listing-price')}>
+                                                    {item.price ? `${item.price.toLocaleString()} VNĐ/tháng` : 'Giá chưa cập nhật'}
+                                                </div>
+                                                <div className={cx('listing-time')}>
+                                                    {item.createdAt ? dayjs(item.createdAt).format('DD/MM/YYYY') : 'Chưa xác định'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

@@ -257,6 +257,7 @@ class controllerPosts {
 
         const reviewCount = reviewStats.length ? reviewStats[0].count : 0;
         const averageRating = reviewStats.length ? Number(reviewStats[0].avgRating.toFixed(1)) : 0;
+        const relatedPosts = await recommendationService.getRelatedRecommendations(id, req.user?.id, 4);
 
         return new OK({
             message: 'Post fetched successfully',
@@ -266,6 +267,7 @@ class controllerPosts {
                 userFavourite,
                 reviewCount,
                 averageRating,
+                relatedPosts,
             },
         }).send(res);
     }

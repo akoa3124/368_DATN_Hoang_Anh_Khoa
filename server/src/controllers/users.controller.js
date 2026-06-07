@@ -356,53 +356,6 @@ class controllerUsers {
                 };
             });
 
-            const revenueData = await modelRechargeUser.aggregate([
-                {
-                    $match: {
-                        createdAt: { $gte: last7Days },
-                        status: 'success',
-                    },
-                },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                        revenue: { $sum: '$amount' },
-                    },
-                },
-                { $sort: { _id: 1 } },
-            ]);
-
-            const formattedRevenueData = last7DaysArray.map((date) => {
-                const dayRevenue = revenueData.find((item) => item._id === date);
-                return {
-                    date,
-                    revenue: dayRevenue ? dayRevenue.revenue : 0,
-                };
-            });
-
-            const newUsersData = await modelUser.aggregate([
-                {
-                    $match: {
-                        createdAt: { $gte: last7Days },
-                    },
-                },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                        users: { $sum: 1 },
-                    },
-                },
-                { $sort: { _id: 1 } },
-            ]);
-
-            const formattedActivityData = last7DaysArray.map((date) => {
-                const dayUsers = newUsersData.find((item) => item._id === date);
-                return {
-                    date,
-                    users: dayUsers ? dayUsers.users : 0,
-                };
-            });
-
             // Get recent transactions
             const recentTransactionsList = await modelRechargeUser
                 .find()
@@ -468,10 +421,8 @@ class controllerUsers {
                     recentRevenue: recentRevenue.length > 0 ? recentRevenue[0].total : 0,
                     revenueGrowth: parseFloat(revenueGrowth),
 
-                    // Chart data
+                    // Posts data for chart
                     postsData: formattedPostsData,
-                    revenueData: formattedRevenueData,
-                    activityData: formattedActivityData,
 
                     // Recent transactions
                     recentTransactions: formattedRecentTransactions,

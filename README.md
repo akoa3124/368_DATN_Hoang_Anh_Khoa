@@ -2,138 +2,135 @@
 
 ## Tổng quan
 
-**Phongtro123** là hệ thống quản lý và tìm kiếm phòng trọ thông minh dành cho sinh viên, phát triển với mục tiêu giảm thiểu rủi ro "cò mồi", nhiễu thông tin và thời gian tìm kiếm khi thuê trọ tại các khu vực đô thị lớn như Hà Nội.
+**Phongtro123** là hệ thống web quản lý và tìm kiếm phòng trọ dành cho sinh viên và chủ nhà tại Việt Nam.
+Mục tiêu chính của dự án là giảm thiểu rủi ro thông tin sai lệch, hỗ trợ tìm kiếm nhanh và cung cấp trải nghiệm tìm phòng thông minh.
 
-Đây là một ứng dụng web full-stack gồm:
-- Frontend React/Vite
-- Backend NodeJS/Express
-- Công nghệ AI (LLM) để tự động gắn thẻ và tóm tắt nội dung bài đăng
-- Hệ thống gợi ý Hybrid Recommendation System
-- Thanh toán điện tử và tính năng nạp tiền cho người dùng
-
-## Mục tiêu dự án
-
-### Mục tiêu kỹ thuật
-- Xây dựng hệ thống web hoàn chỉnh với giao diện hiện đại và API RESTful.
-- Tích hợp Hybrid Recommendation System kết hợp Content-based và Collaborative Filtering.
-- Sử dụng Large Language Model (LLM) để tạo metadata tự động cho bài đăng, bao gồm tag và summary.
-- Cải thiện hệ thống bằng cơ chế xử lý lỗi (error handling) và logging.
-- Hướng tới khả năng container hóa (Docker) và triển khai thực tế.
-
-### Mục tiêu chức năng
-- Hỗ trợ tìm kiếm phòng trọ theo giá, diện tích, tiện ích, loại tin, khu vực.
-- Cung cấp tính năng đăng tin cho chủ nhà và tìm kiếm chuyên dụng cho sinh viên.
-- Hiển thị mục "Phòng trọ dành riêng cho bạn" dựa trên dữ liệu người dùng.
-- Kết nối chat trực tuyến giữa người dùng và chủ nhà thông qua Socket.io.
-- Hỗ trợ quản lý duyệt tin, phân quyền và dashboard admin.
-
-### Mục tiêu nghiệp vụ
-- Thiết kế quy trình đăng tin, duyệt tin và phân quyền người dùng.
-- Đảm bảo các chức năng CRUD cho bài đăng và người dùng.
-- Tích hợp quy trình phê duyệt tin để nâng cao chất lượng nội dung.
-- Hướng tới sản phẩm phù hợp với ba nhóm đối tượng: Sinh viên, Chủ nhà và Admin.
-
-## Tính năng chính hiện tại
-
-### Frontend
-- Giao diện React + Vite + Ant Design.
-- Trang tìm kiếm, trang chi tiết phòng trọ, trang quản lý người dùng.
-- Form đăng bài với hỗ trợ AI gợi ý nội dung.
-- Dashboard quản lý bài đăng và lịch sử nạp tiền.
-
-### Backend
-- API RESTful xây dựng bằng Express.
-- Xác thực JWT và Google OAuth.
-- Quản lý bài đăng, duyệt bài, từ chối bài, và hệ thống favourite.
-- Thanh toán điện tử: VNPAY và MoMo.
-- Tích hợp AI Search và AI metadata cho bài đăng.
-- Chat realtime với Socket.io.
-
-### Recommendation & AI
-- Hệ thống gợi ý ban đầu sử dụng `recommendation.service.js` với:
-  - Content-based scoring
-  - Collaborative filtering dựa trên lịch sử favourite
-  - Yếu tố phụ trợ: tin VIP và độ mới
-- Tích hợp LLM Gemini để chỉnh sửa metadata bài đăng tự động qua hàm `AiGenerateTagsAndSummary`.
+Ứng dụng gồm hai phần chính:
+- `client/`: Frontend React + Vite
+- `server/`: Backend Node.js + Express + MongoDB
 
 ## Kiến trúc hệ thống
 
-### Cấu trúc thư mục
-- `client/`: Frontend React/Vite.
-- `server/`: Backend NodeJS/Express.
-- `server/src/controllers`: Định nghĩa logic API.
-- `server/src/models`: Mongoose schema.
-- `server/src/routes`: Khai báo route.
-- `server/src/services`: Logic nghiệp vụ, recommendation, socket, token.
-- `server/src/utils/AISearch`: Tích hợp LLM và AI Search.
+### Frontend
+- React 18, Vite, Ant Design, Sass
+- React Router cho điều hướng SPA
+- Socket.io client cho chat realtime
+- Hỗ trợ đăng nhập bằng email/password và Google OAuth
+- Các module chính: Home, Đăng ký, Đăng nhập, Đăng tin, Chi tiết bài đăng, Quản lý người dùng, Dashboard admin
 
-## Hướng dẫn cài đặt
+### Backend
+- Express + Mongoose + MongoDB
+- Xác thực JWT và Google OAuth
+- API RESTful cho bài đăng, người dùng, favourite, review, recharge, report, violation
+- Chat realtime với Socket.io
+- Thanh toán bằng MoMo và VNPAY
+- Tích hợp AI Gemini để
+  - tạo tag và summary tự động cho bài đăng
+  - hỗ trợ tìm kiếm AI
+  - chatbot xử lý câu hỏi
+- Recommendation service với hybrid score dựa trên
+  - content-based
+  - collaborative filtering từ favourite
+  - tin VIP và độ mới
 
-### Thiết lập backend
-```bash
-cd server
-npm install
-npm run dev
-```
-Backend khởi chạy tại `http://localhost:3000`.
+## Tính năng đã hoàn thiện
 
-### Thiết lập frontend
-```bash
-cd client
-npm install
-npm run dev
-```
-Frontend khởi chạy tại `http://localhost:5173`.
+### Backend hoàn thiện
+- Xác thực người dùng (register, login, logout, forgot password)
+- Đăng nhập Google OAuth
+- CRUD bài đăng
+- Quản lý trạng thái bài đăng: active, pending, reject, draft
+- Duyệt bài đăng, từ chối bài đăng
+- Tạo favourite và truy vấn favourite của người dùng
+- Mô hình review và API review cơ bản
+- API violation / báo cáo vi phạm
+- Recharge người dùng và theo dõi lịch sử nạp tiền
+- Thanh toán MoMo và VNPAY với callback xử lý trạng thái thành công
+- Tích hợp AI Gemini cho
+  - metadata bài đăng (tags + summary)
+  - tìm kiếm AI trong backend
+  - chatbot trả lời câu hỏi qua socket
+- Recommendation service đã triển khai trong backend
+- Gửi thư điện tử: phê duyệt, từ chối, quên mật khẩu
+- API dashboard thống kê giao dịch và doanh thu
+
+### Frontend hoàn thiện
+- Giao diện tìm kiếm và lọc phòng trọ
+- Trang chi tiết bài đăng
+- Form tạo bài đăng
+- Trang quản lý bài viết và người dùng
+- Tính năng favourite bài đăng
+- Dashboard người dùng và quản trị
+- Tích hợp chat realtime giao diện client
+- Hệ thống thông báo / alert cơ bản
+
+### Hệ thống chung
+- Thư mục code rõ ràng: `client/`, `server/`
+- Cấu trúc models, controllers, routes, services hợp lý
+- Sử dụng Socket.io cho realtime chat
+- Tích hợp AI và thanh toán thực tế
 
 ## Trạng thái hiện tại
 
-### Đã hoàn thiện
-- Frontend:
-  - Giao diện tìm kiếm phòng trọ, trang chi tiết bài đăng và trang quản lý.
-  - Form đăng bài có hỗ trợ gợi ý nội dung AI.
-  - Hệ thống đăng nhập/đăng ký, quản lý thông tin người dùng và dashboard admin.
-- Backend:
-  - API RESTful với Express cho CRUD bài đăng, người dùng, yêu thích và quản lý hệ thống.
-  - Xác thực JWT và tích hợp Google OAuth cho đăng nhập.
-  - Quản lý duyệt tin, từ chối tin, xóa tin và phân quyền admin.
-  - Chat realtime với Socket.io giữa người dùng và chủ nhà.
-  - Tích hợp thanh toán điện tử VNPAY và MoMo cho nạp tiền.
-  - Hệ thống AI Search và tạo metadata tự động (tag, summary) cho bài đăng.
-- Recommendation & AI:
-  - Module recommendation ban đầu hoạt động với content-based và collaborative filtering.
-  - Sử dụng Gemini để hỗ trợ metadata bài đăng và tìm kiếm thông minh.
-- Hạ tầng & dữ liệu:
-  - Sử dụng MongoDB với Mongoose cho dữ liệu người dùng và bài đăng.
-  - Cấu trúc ứng dụng rõ ràng: `client/` cho frontend, `server/` cho backend.
+### Đã hoàn thành
+- Xây dựng ứng dụng full-stack frontend/backend hoạt động được
+- Backend API đầy đủ cho hầu hết nghiệp vụ chính
+- Xác thực JWT và Google OAuth
+- Quản lý bài đăng, favourite, review, recharge
+- Thanh toán MoMo và VNPAY
+- AI metadata cho bài đăng và AI search
+- Chat realtime qua Socket.io
+- Recommendation service cơ bản hoạt động
+- Email thông báo phê duyệt / từ chối và quên mật khẩu
+
+### Chưa hoàn thiện / cần tiếp tục
+- UI và quy trình phân quyền rõ ràng giữa Sinh viên, Chủ nhà, Admin
+- Tối ưu Recommendation System và hiển thị gợi ý phù hợp trong frontend
+- Hoàn thiện UI/UX cho review/violation nếu chưa đầy đủ
+- Hoàn thiện báo cáo admin, export dữ liệu
+- Container hóa Docker / Docker Compose
+- Nâng cao logging, giám sát, audit hành động người dùng
+- Mở rộng tính năng tìm người ở ghép, lịch xem phòng
+
+## Hướng dẫn cài đặt
+
+### Backend
+```bash
+cd server
+cp .env.example .env
+npm install
+npm run dev
+```
+Mặc định backend lắng nghe trên `http://localhost:3000`.
+
+### Frontend
+```bash
+cd client
+cp .env.example .env
+npm install
+npm run dev
+```
+Frontend khởi chạy trên `http://localhost:5173`.
+
+### Docker Compose
+```bash
+cp .env.example .env
+docker compose up --build
+```
+- Backend: `http://localhost:3000`
+- Frontend: `http://localhost:3001`
+- MongoDB: `mongodb://localhost:27017`
 
 ## Công nghệ sử dụng
 
-- Frontend: React, Vite, Ant Design, React Router, Socket.io Client.
-- Backend: Node.js, Express, Mongoose, Socket.io, JWT, dotenv.
-- AI: `@google/generative-ai` (Gemini).
-- Thanh toán: `vnpay`, MoMo.
-- Database: MongoDB.
+- Frontend: React, Vite, Ant Design, React Router, Socket.io Client, Sass
+- Backend: Node.js, Express, Mongoose, MongoDB, JWT, dotenv
+- AI: `@google/generative-ai` (Google Gemini)
+- Thanh toán: `vnpay`, MoMo
+- Realtime: `socket.io`
 
-## Định hướng mở rộng
+## Ghi chú
 
-1. Triển khai Docker và thiết kế môi trường deploy.
-2. Tối ưu recommendation engine và bổ sung dữ liệu huấn luyện.
-3. Hoàn thiện hệ thống role-based access với Sinh viên / Chủ nhà / Admin.
-4. Thêm review, rating, lịch xem phòng và tìm người ở ghép.
-5. Cung cấp báo cáo quản trị và phân tích dữ liệu cho admin.
-
-## Tài liệu tham khảo
-
-- [Google Gemini API](https://ai.google.dev/gemini-api/docs?hl=vi)
-- [Google Maps Platform Documentation](https://developers.google.com/maps/apis-by-platform?hl=vi)
-- [Recommendation System cơ bản](https://machinelearningcoban.com/2017/05/17/contentbasedrecommendersys/)
-- [Docker/DevOps cho microservices](https://viblo.asia/p/banking-demo-full-devops-voi-microservices-trien-khai-voi-docker-compose-bA468ekXLKv)
-
-## Thông tin tác giả
-
-- **Hoàng Anh Khoa**
-- Lớp: 64HTTT4
-- MSSV: 2251162045
-- Email: 2251162045@e.tlu.edu.vn
-- Giáo viên hướng dẫn: TS. Đỗ Oanh Cường
-- Email GVHD: cuongdo@tlu.edu.vn
+- Để chạy đầy đủ tính năng AI, cần cấu hình biến môi trường Google API Key.
+- Để chạy thanh toán MoMo/VNPAY, cần cấu hình thông tin tài khoản và callback URL phù hợp.
+- Dự án đang ở trạng thái hoàn thiện phần nền tảng, còn một số tính năng mở rộng và UI/UX cần hoàn thiện thêm.

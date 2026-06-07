@@ -42,7 +42,7 @@ function AISearch() {
     }, [value]);
 
     const handleOpenTab = async (id) => {
-        window.open(`http://localhost:5173/chi-tiet-tin-dang/${id}`);
+        window.open(`${window.location.origin}/chi-tiet-tin-dang/${id}`);
     };
 
     return (
