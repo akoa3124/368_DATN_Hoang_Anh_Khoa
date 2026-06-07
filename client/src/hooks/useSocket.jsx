@@ -121,6 +121,7 @@ export const useSocket = () => {
         dataPayment,
         dataFavourite,
         dataMessagersUser,
+        setDataMessagersUser,
         usersMessage: globalUsersMessage,
         setUsersMessage: setGlobalUsersMessage,
         socketRef,

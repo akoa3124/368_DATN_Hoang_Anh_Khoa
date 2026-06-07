@@ -5,8 +5,12 @@ const fs = require('fs');
 
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
+    cors: {
+        origin: process.env.CLIENT_URL,
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
     transports: ['websocket'],
-    credentials: true,
 });
 
 global.io = io;

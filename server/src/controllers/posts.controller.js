@@ -140,7 +140,7 @@ class controllerPosts {
             tags: metadata.tags,
             summary: metadata.summary,
             features,
-            status: 'inactive',
+            status: 'pending',
             userId: id,
             endDate: endDate ? endDate : null,
             typeNews,
@@ -322,7 +322,14 @@ class controllerPosts {
 
     async getAllPosts(req, res) {
         const { status } = req.query;
-        const filter = { status: status };
+        const filter = {};
+        if (status) {
+            if (status === 'pending') {
+                filter.status = { $in: ['pending', 'inactive'] };
+            } else {
+                filter.status = status;
+            }
+        }
         const data = await modelPost.find(filter);
         return new OK({
             message: 'Posts fetched successfully',

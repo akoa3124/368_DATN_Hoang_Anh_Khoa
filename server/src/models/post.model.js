@@ -75,7 +75,8 @@ const modelPost = new Schema(
         status: {
             type: String,
             required: true,
-            enum: ['active', 'inactive'],
+            enum: ['pending', 'active', 'cancel', 'inactive'],
+            default: 'pending',
         },
         typeNews: {
             type: String,

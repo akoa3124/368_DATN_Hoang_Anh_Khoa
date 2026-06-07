@@ -20,11 +20,13 @@ function ManagerPost() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [approvalReason, setApprovalReason] = useState('');
     const [posts, setPosts] = useState([]);
+    const [allPosts, setAllPosts] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('all');
     const [stats, setStats] = useState({
         totalPosts: 0,
         activePosts: 0,
-        inactivePosts: 0,
+        pendingPosts: 0,
         totalRevenue: 0,
     });
 
@@ -36,7 +38,8 @@ function ManagerPost() {
     const handleReject = async (postId) => {
         try {
             await requestRejectPost({ id: postId, reason: approvalReason });
-            fetchData();
+            await fetchAllPosts();
+            fetchData(statusFilter);
         } catch (error) {
             console.log(error);
         }
@@ -47,26 +50,39 @@ function ManagerPost() {
         setSelectedPost(null);
     };
 
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchAllPosts = async () => {
         try {
-            // Fetch all posts without status filter to get all posts
-            const res = await requestGetAllPosts({ status: 'inactive' });
+            const res = await requestGetAllPosts({});
             if (res && res.metadata) {
-                setPosts(res.metadata);
+                setAllPosts(res.metadata);
 
-                // Calculate statistics
                 const totalPosts = res.metadata.length;
                 const activePosts = res.metadata.filter((post) => post.status === 'active').length;
-                const inactivePosts = res.metadata.filter((post) => post.status === 'inactive').length;
+                const pendingPosts = res.metadata.filter(
+                    (post) => post.status === 'pending' || post.status === 'inactive',
+                ).length;
                 const totalRevenue = res.metadata.reduce((sum, post) => sum + post.price, 0);
 
                 setStats({
                     totalPosts,
                     activePosts,
-                    inactivePosts,
+                    pendingPosts,
                     totalRevenue,
                 });
+            }
+        } catch (error) {
+            console.error('Error fetching all posts for stats:', error);
+        }
+    };
+
+    const fetchData = async (status = statusFilter) => {
+        setLoading(true);
+        try {
+            const params = status !== 'all' ? { status } : {};
+            const res = await requestGetAllPosts(params);
+            if (res && res.metadata) {
+                setPosts(res.metadata);
+                setStatusFilter(status);
             }
         } catch (error) {
             console.error('Error fetching posts:', error);
@@ -76,14 +92,22 @@ function ManagerPost() {
     };
 
     useEffect(() => {
-        fetchData();
+        fetchAllPosts();
+        fetchData('all');
     }, []);
+
+    const handleStatusChange = (status) => {
+        if (status !== statusFilter) {
+            fetchData(status);
+        }
+    };
 
     const handleApprove = async (postId) => {
         try {
             await requestApprovePost({ id: postId, reason: approvalReason });
             setApprovalReason('');
-            fetchData();
+            await fetchAllPosts();
+            fetchData(statusFilter);
         } catch (error) {
             console.log(error);
         }
@@ -147,9 +171,12 @@ function ManagerPost() {
             render: (status) => {
                 const statusConfig = {
                     active: { color: 'green', text: 'Đã duyệt' },
+                    pending: { color: 'orange', text: 'Chờ duyệt' },
                     inactive: { color: 'orange', text: 'Chờ duyệt' },
+                    cancel: { color: 'red', text: 'Đã từ chối' },
                 };
-                return <Tag color={statusConfig[status].color}>{statusConfig[status].text}</Tag>;
+                const config = statusConfig[status] || { color: 'default', text: status };
+                return <Tag color={config.color}>{config.text}</Tag>;
             },
         },
         {
@@ -209,7 +236,7 @@ function ManagerPost() {
                     <Card>
                         <Statistic
                             title="Bài viết chờ duyệt"
-                            value={stats.inactivePosts}
+                            value={stats.pendingPosts}
                             prefix={<CloseCircleOutlined />}
                             valueStyle={{ color: '#faad14' }}
                         />
@@ -217,7 +244,18 @@ function ManagerPost() {
                 </Col>
             </Row>
             <Row style={{ marginTop: 16, marginBottom: 16 }}>
-                <Col span={24} style={{ textAlign: 'right' }}>
+                <Col span={24} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Space>
+                        <Button type={statusFilter === 'all' ? 'primary' : 'default'} onClick={() => handleStatusChange('all')}>
+                            Tất cả bài viết
+                        </Button>
+                        <Button type={statusFilter === 'active' ? 'primary' : 'default'} onClick={() => handleStatusChange('active')}>
+                            Bài viết đã duyệt
+                        </Button>
+                        <Button type={statusFilter === 'pending' ? 'primary' : 'default'} onClick={() => handleStatusChange('pending')}>
+                            Bài viết chờ duyệt
+                        </Button>
+                    </Space>
                     <Button type="primary" onClick={handleExportPosts}>
                         Xuất báo cáo bài viết
                     </Button>
@@ -243,7 +281,7 @@ function ManagerPost() {
                     <Button key="close" onClick={handleCloseModal}>
                         Đóng
                     </Button>,
-                    selectedPost?.status === 'inactive' && (
+                    (selectedPost?.status === 'inactive' || selectedPost?.status === 'pending') && (
                         <Space size="middle" style={{ width: '100%', justifyContent: 'flex-end' }}>
                             <Button
                                 key="approve"
@@ -331,8 +369,20 @@ function ManagerPost() {
                                 </Tag>
                             </Descriptions.Item>
                             <Descriptions.Item label="Trạng thái">
-                                <Tag color={selectedPost.status === 'active' ? 'green' : 'orange'}>
-                                    {selectedPost.status === 'active' ? 'Đã duyệt' : 'Chờ duyệt'}
+                                <Tag
+                                    color={
+                                        selectedPost.status === 'active'
+                                            ? 'green'
+                                            : selectedPost.status === 'cancel'
+                                            ? 'red'
+                                            : 'orange'
+                                    }
+                                >
+                                    {selectedPost.status === 'active'
+                                        ? 'Đã duyệt'
+                                        : selectedPost.status === 'cancel'
+                                        ? 'Đã từ chối'
+                                        : 'Chờ duyệt'}
                                 </Tag>
                             </Descriptions.Item>
                             <Descriptions.Item label="Ngày đăng">

@@ -241,16 +241,34 @@
     gap: 5px;
     margin-bottom: 8px;
 
+    &.online {
+        .status-dot {
+            background-color: #4caf50;
+        }
+        .status-text {
+            color: #4caf50;
+        }
+    }
+
+    &.offline {
+        .status-dot {
+            background-color: #dc3545;
+        }
+        .status-text {
+            color: #dc3545;
+        }
+    }
+
     .status-dot {
         width: 8px;
         height: 8px;
-        background-color: #4caf50;
         border-radius: 50%;
+        background-color: #6c757d;
     }
 
     .status-text {
         font-size: 13px;
-        color: #4caf50;
+        color: #6c757d;
     }
 }
 

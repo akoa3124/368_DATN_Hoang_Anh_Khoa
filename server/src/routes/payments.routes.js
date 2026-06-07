@@ -5,9 +5,9 @@ const { asyncHandler, authUser, authAdmin } = require('../auth/checkAuth');
 
 const controllerPayments = require('../controllers/payments.controller');
 
-router.post('/api/payments', authUser, asyncHandler(controllerPayments.payments));
-router.get('/api/check-payment-vnpay', asyncHandler(controllerPayments.checkPaymentVnpay));
-router.route('/api/check-payment-momo')
+router.post('/payments', authUser, asyncHandler(controllerPayments.payments));
+router.get('/check-payment-vnpay', asyncHandler(controllerPayments.checkPaymentVnpay));
+router.route('/check-payment-momo')
     .get(asyncHandler(controllerPayments.checkPaymentMomo))
     .post(asyncHandler(controllerPayments.checkPaymentMomo));
 

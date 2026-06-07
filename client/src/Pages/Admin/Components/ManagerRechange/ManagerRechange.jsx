@@ -60,13 +60,13 @@ function ManagerRechange() {
             setRechargeStats({
                 totalTransactions: metadata.totalTransactions,
                 totalRevenue: metadata.totalRevenue,
-                recentTransactions: metadata.recentTransactions?.length || 0,
+                recentTransactions: metadata.transactions?.length || 0,
                 transactionGrowth: metadata.transactionGrowth,
                 recentRevenue: metadata.recentRevenue,
                 revenueGrowth: metadata.revenueGrowth,
             });
 
-            setRechargeData(metadata.recentTransactions || []);
+            setRechargeData(metadata.transactions || []);
         } catch (error) {
             console.error('Error fetching recharge data:', error);
         } finally {

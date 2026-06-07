@@ -14,7 +14,7 @@ const cx = classNames.bind(styles);
 
 function Messager({ user, setUsersMessage, usersMessage }) {
     const { dataMessages, setDataMessages, dataUser } = useStore();
-    const { socketRef, newMessage } = useSocket();
+    const { socketRef, newMessage, dataMessagersUser, setDataMessagersUser } = useSocket();
     const messagesEndRef = useRef(null);
     const [valueMessager, setValueMessager] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,6 +28,18 @@ function Messager({ user, setUsersMessage, usersMessage }) {
         scrollToBottom();
     }, [dataMessages]);
 
+    const updateUnreadCountForSender = (senderId) => {
+        if (!setDataMessagersUser) return;
+        setDataMessagersUser((prev) =>
+            prev.map((entry) => {
+                if (entry.sender?.id === senderId) {
+                    return { ...entry, unreadCount: 0 };
+                }
+                return entry;
+            }),
+        );
+    };
+
     // Khi component được mount, lấy dữ liệu tin nhắn và đánh dấu đã đọc
     useEffect(() => {
         const fetchMessages = async () => {
@@ -37,10 +49,11 @@ function Messager({ user, setUsersMessage, usersMessage }) {
                     receiverId: user.id,
                 };
                 const res = await requestGetMessages(data);
-                setDataMessages(res.metadata || []);
+                const messages = res.metadata || [];
+                setDataMessages(messages);
 
                 // Kiểm tra xem có tin nhắn chưa đọc không
-                const unread = res.metadata.filter(
+                const unread = messages.filter(
                     (msg) => msg.senderId === user.id && msg.receiverId === dataUser._id && !msg.isRead,
                 );
 
@@ -48,6 +61,7 @@ function Messager({ user, setUsersMessage, usersMessage }) {
                     setUnreadMessages(unread);
                     // Đánh dấu tất cả tin nhắn từ người này là đã đọc
                     await markAllAsRead();
+                    updateUnreadCountForSender(user.id);
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy tin nhắn:', error);
@@ -72,6 +86,7 @@ function Messager({ user, setUsersMessage, usersMessage }) {
             if (unread.length > 0) {
                 setUnreadMessages(unread);
                 markAllAsRead();
+                updateUnreadCountForSender(user.id);
             }
         }
     }, [user.id, dataUser._id]);
@@ -88,11 +103,12 @@ function Messager({ user, setUsersMessage, usersMessage }) {
     // Xử lý khi có tin nhắn mới thông qua socket
     useEffect(() => {
         if (newMessage && newMessage.senderId === user.id) {
-            setDataMessages((prev) => [...prev, newMessage]);
+            setDataMessages((prev) => [...prev, { ...newMessage, isRead: true }]);
 
             // Đánh dấu tin nhắn mới là đã đọc ngay lập tức
             if (newMessage.receiverId === dataUser._id && !newMessage.isRead) {
                 markAllAsRead();
+                updateUnreadCountForSender(user.id);
             }
         }
     }, [newMessage, user.id, dataUser._id]);

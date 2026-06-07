@@ -12,7 +12,7 @@ function ChatMiniList() {
     const [isOpen, setIsOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { dataUser } = useStore();
-    const { dataMessagersUser, usersMessage, setUsersMessage } = useSocket();
+    const { dataMessagersUser, setDataMessagersUser, usersMessage, setUsersMessage } = useSocket();
 
     const toggleOpen = () => {
         if (!dataUser._id) return; // Không mở nếu chưa đăng nhập
@@ -62,6 +62,17 @@ function ChatMiniList() {
                 console.log('Updated messages list:', updatedMessages);
                 return updatedMessages;
             });
+
+            if (setDataMessagersUser) {
+                setDataMessagersUser((prev) =>
+                    prev.map((entry) => {
+                        if (entry.sender?.id === user.sender.id) {
+                            return { ...entry, unreadCount: 0 };
+                        }
+                        return entry;
+                    }),
+                );
+            }
 
             setIsOpen(false);
         } catch (error) {

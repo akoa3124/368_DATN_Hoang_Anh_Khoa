@@ -139,15 +139,12 @@ function ManagerPost() {
             render: (status) => {
                 let color = 'green';
                 let text = 'Đã duyệt';
-                if (status === 'inactive') {
-                    color = 'red';
-                    text = 'Chưa duyệt';
-                } else if (status === 'active') {
-                    color = 'green';
-                    text = 'Đã duyệt';
+                if (status === 'pending' || status === 'inactive') {
+                    color = 'orange';
+                    text = 'Chờ duyệt';
                 } else if (status === 'cancel') {
-                    color = 'gray';
-                    text = 'Đã hủy';
+                    color = 'red';
+                    text = 'Đã từ chối';
                 }
                 return <Tag color={color}>{text}</Tag>;
             },
@@ -155,21 +152,38 @@ function ManagerPost() {
         {
             title: 'Hành động',
             key: 'action',
-            render: (_, record) =>
-                record.status === 'pending' && (
-                    <Space size="middle">
-                        <Popconfirm
-                            title="Bạn chắc chắn muốn xóa?"
-                            onConfirm={() => handleDeletePost(record._id)}
-                            okText="Xóa"
-                            cancelText="Hủy"
+            render: (_, record) => (
+                <Space size="small" align="center">
+                    <Button
+                        size="small"
+                        type="default"
+                        icon={<EditOutlined />}
+                        className={cx('actionButton', 'editButton')}
+                        onClick={() => {
+                            setEditingPost(record);
+                            setIsFormVisible(true);
+                        }}
+                    >
+                        Sửa
+                    </Button>
+                    <Popconfirm
+                        title="Bạn chắc chắn muốn xóa?"
+                        onConfirm={() => handleDeletePost(record._id || record.id)}
+                        okText="Xóa"
+                        cancelText="Hủy"
+                    >
+                        <Button
+                            size="small"
+                            type="primary"
+                            danger
+                            icon={<DeleteOutlined />}
+                            className={cx('actionButton', 'deleteButton')}
                         >
-                            <Button icon={<DeleteOutlined />} danger>
-                                Xóa
-                            </Button>
-                        </Popconfirm>
-                    </Space>
-                ),
+                            Xóa
+                        </Button>
+                    </Popconfirm>
+                </Space>
+            ),
         },
     ];
 
@@ -224,7 +238,7 @@ function ManagerPost() {
                             <Title level={5} style={{ marginBottom: 16 }}>
                                 Danh sách chi tiết
                             </Title>
-                            <Table columns={columns} dataSource={posts} rowKey="id" bordered pagination={false} />
+                            <Table columns={columns} dataSource={posts} rowKey={(record) => record._id || record.id} bordered pagination={false} />
                         </>
                     ) : (
                         // Placeholder when no posts exist

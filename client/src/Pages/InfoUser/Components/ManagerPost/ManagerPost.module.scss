@@ -11,3 +11,23 @@
     color: #1890ff;
     margin-bottom: 16px;
 }
+
+.actionButton {
+    border-radius: 6px;
+    min-width: 72px;
+}
+
+.editButton {
+    background: #ffffff;
+    border: 1px solid #d9d9d9;
+    color: #262626;
+}
+
+.editButton:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+.deleteButton {
+    border-radius: 6px;
+}

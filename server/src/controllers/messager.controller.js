@@ -53,7 +53,9 @@ class controllerMessager {
         const { receiverId } = req.query;
 
         // Lấy tất cả tin nhắn giữa hai người dùng
-        const messages = await modelMessager
+        await modelMessager.updateMany({ senderId: receiverId, receiverId: id, isRead: false }, { isRead: true });
+
+        const updatedMessages = await modelMessager
             .find({
                 $or: [
                     { senderId: id, receiverId },
@@ -62,12 +64,9 @@ class controllerMessager {
             })
             .sort({ createdAt: 1 });
 
-        // Đánh dấu tất cả tin nhắn từ người nhận gửi đến là đã đọc
-        await modelMessager.updateMany({ senderId: receiverId, receiverId: id, isRead: false }, { isRead: true });
-
         new OK({
             message: 'Lấy tin nhắn thành công',
-            metadata: messages,
+            metadata: updatedMessages,
         }).send(res);
     }
 

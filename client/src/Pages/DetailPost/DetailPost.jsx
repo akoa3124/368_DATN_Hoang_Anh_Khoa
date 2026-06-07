@@ -287,9 +287,16 @@ function DetailPost() {
                                 </div>
                                 <div className={cx('user-details')}>
                                     <h3 className={cx('user-name')}>{user?.username || user?.fullName}</h3>
-                                    <div className={cx('user-status')}>
+                                    <div
+                                        className={cx('user-status', {
+                                            online: user?.status === 'Đang hoạt động',
+                                            offline: user?.status !== 'Đang hoạt động',
+                                        })}
+                                    >
                                         <span className={cx('status-dot')}></span>
-                                        <span className={cx('status-text')}>{user?.status || 'Đang hoạt động'}</span>
+                                        <span className={cx('status-text')}>
+                                            {user?.status || 'Đang offline'}
+                                        </span>
                                     </div>
                                     <div className={cx('user-stats')}>
                                         <span>{user?.lengthPost} tin đăng</span>

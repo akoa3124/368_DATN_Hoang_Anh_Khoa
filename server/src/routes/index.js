@@ -60,9 +60,7 @@ function routes(app) {
     app.post('/api/reject-post', postRoutes);
 
     /// payments
-    app.post('/api/payments', paymentsRoutes);
-    app.get('/api/check-payment-vnpay', paymentsRoutes);
-    app.get('/api/check-payment-momo', paymentsRoutes);
+    app.use('/api', paymentsRoutes);
 
     /// post suggest
     app.get('/api/post-suggest', postRoutes);

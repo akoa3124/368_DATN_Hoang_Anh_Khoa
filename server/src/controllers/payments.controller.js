@@ -20,14 +20,16 @@ class PaymentsController {
         }
 
         if (typePayment === 'MOMO') {
+            const serverUrl = process.env.SERVER_URL || 'http://localhost:3000';
+            const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
             var partnerCode = 'MOMO';
             var accessKey = 'F8BBA842ECF85';
             var secretkey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
             var requestId = partnerCode + new Date().getTime();
             var orderId = requestId;
             var orderInfo = `nap tien ${id}`; // nội dung giao dịch thanh toán
-            var redirectUrl = 'http://localhost:3000/api/check-payment-momo'; // 8080
-            var ipnUrl = 'http://localhost:3000/api/check-payment-momo';
+            var redirectUrl = `${serverUrl}/api/check-payment-momo`;
+            var ipnUrl = `${serverUrl}/api/check-payment-momo`;
             var amount = amountUser;
             var requestType = 'captureWallet';
             var extraData = ''; //pass empty value if your merchant does not have stores
@@ -122,44 +124,71 @@ class PaymentsController {
     }
 
     async checkPaymentMomo(req, res, next) {
+        const serverUrl = process.env.SERVER_URL || 'http://localhost:3000';
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         console.log('MOMO callback payload:', {
             method: req.method,
             query: req.query,
             body: req.body,
         });
-        const { orderInfo, resultCode, errorCode, amount } = req.method === 'POST' ? req.body : req.query;
-        const statusCode = String(resultCode ?? errorCode ?? '').trim();
+
+        const source = req.method === 'POST' ? req.body : req.query;
+        const orderInfo = source.orderInfo || source.orderDesc || '';
+        const resultCode = source.resultCode ?? source.errorCode;
+        const amount = source.amount || source.totalAmount || 0;
+        const statusCode = String(resultCode ?? '').trim();
         const amountValue = Number(amount || 0);
-        const userId = orderInfo?.split(' ')[2];
+        const userId = orderInfo?.split(' ')[2] || source.orderId || source.requestId || '';
+
+        const orderId = source.orderId || source.requestId || '';
+        const requestId = source.requestId || source.orderId || '';
 
         if (statusCode === '0' && userId && amountValue > 0) {
-            const findUser = await modelUser.findOne({ _id: userId });
-            if (findUser) {
-                findUser.balance += amountValue;
-                await findUser.save();
+            let existingRecharge = null;
+            if (orderId) {
+                existingRecharge = await modelRechargeUser.findOne({ orderId, typePayment: 'MOMO', status: 'success' });
+            } else if (requestId) {
+                existingRecharge = await modelRechargeUser.findOne({ requestId, typePayment: 'MOMO', status: 'success' });
+            }
+            if (existingRecharge) {
+                console.log('MOMO callback: duplicate callback ignored for orderId=', orderId, 'requestId=', requestId);
+                return res.redirect(`${clientUrl}/trang-ca-nhan`);
+            }
 
+            const updatedUser = await modelUser.findByIdAndUpdate(
+                userId,
+                { $inc: { balance: amountValue } },
+                { new: true, runValidators: false }
+            );
+            if (updatedUser) {
                 await modelRechargeUser.create({
-                    userId: findUser._id,
+                    userId: updatedUser._id,
+                    orderId,
+                    requestId,
                     amount: amountValue,
                     typePayment: 'MOMO',
                     status: 'success',
                 });
 
-                const socket = global.usersMap.get(findUser._id.toString());
+                const socket = global.usersMap.get(updatedUser._id.toString());
                 if (socket) {
                     socket.emit('new-payment', {
-                        userId: findUser._id,
+                        userId: updatedUser._id,
                         amount: amountValue,
                         date: new Date(),
                         typePayment: 'MOMO',
                     });
                 }
 
-                return res.redirect('http://localhost:5173/trang-ca-nhan');
+                console.log('MOMO callback: balance updated for userId=', userId, 'amount=', amountValue);
+                return res.redirect(`${clientUrl}/trang-ca-nhan`);
             }
+            console.error('MOMO callback: user not found for userId=', userId);
+        } else {
+            console.error('MOMO callback: invalid payment status or amount', { statusCode, userId, amountValue });
         }
 
-        return res.redirect('http://localhost:5173/trang-ca-nhan?status=failed');
+        return res.redirect(`${clientUrl}/trang-ca-nhan?status=failed`);
     }
 
     async checkPaymentVnpay(req, res) {
@@ -167,29 +196,31 @@ class PaymentsController {
 
         if (vnp_ResponseCode === '00') {
             const result = vnp_OrderInfo.split(' ')[2];
-            const findUser = await modelUser.findOne({ _id: result });
-            if (findUser) {
-                findUser.balance += Number(vnp_Amount.slice(0, -2));
-                await findUser.save();
-                const socket = global.usersMap.get(findUser._id.toString());
+            const amountValue = Number(vnp_Amount.slice(0, -2));
+            const updatedUser = await modelUser.findByIdAndUpdate(
+                result,
+                { $inc: { balance: amountValue } },
+                { new: true, runValidators: false }
+            );
+            if (updatedUser) {
+                const socket = global.usersMap.get(updatedUser._id.toString());
+                await modelRechargeUser.create({
+                    userId: updatedUser._id,
+                    amount: amountValue,
+                    typePayment: 'VNPAY',
+                    status: 'success',
+                });
                 if (socket) {
                     socket.emit('new-payment', {
-                        userId: findUser._id,
-                        amount: vnp_Amount.slice(0, -2),
+                        userId: updatedUser._id,
+                        amount: amountValue,
                         date: new Date(),
                         typePayment: 'VNPAY',
                     });
-                    await modelRechargeUser.create({
-                        userId: findUser._id,
-                        amount: vnp_Amount.slice(0, -2),
-                        typePayment: 'VNPAY',
-                        status: 'success',
-                    });
-                    return res.redirect(`http://localhost:5173/trang-ca-nhan`);
-                } else {
-                    return res.redirect(`http://localhost:5173/trang-ca-nhan`);
                 }
+                return res.redirect(`http://localhost:5173/trang-ca-nhan`);
             }
+            console.error('VNPAY callback: user not found for userId=', result);
         }
     }
 }

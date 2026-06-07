@@ -54,7 +54,7 @@ function ChatButton({
                 id: userId,
                 username: username,
                 avatar: avatar,
-                status: status || 'Đang hoạt động',
+                status: status || 'Đang offline',
                 messages: res.metadata || [],
             };
 
