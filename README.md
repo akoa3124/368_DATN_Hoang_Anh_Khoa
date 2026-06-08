@@ -84,13 +84,9 @@ Mục tiêu chính của dự án là giảm thiểu rủi ro thông tin sai l�
 - Email thông báo phê duyệt / từ chối và quên mật khẩu
 
 ### Chưa hoàn thiện / cần tiếp tục
-- UI và quy trình phân quyền rõ ràng giữa Sinh viên, Chủ nhà, Admin
-- Tối ưu Recommendation System và hiển thị gợi ý phù hợp trong frontend
 - Hoàn thiện UI/UX cho review/violation nếu chưa đầy đủ
-- Hoàn thiện báo cáo admin, export dữ liệu
-- Container hóa Docker / Docker Compose
 - Nâng cao logging, giám sát, audit hành động người dùng
-- Mở rộng tính năng tìm người ở ghép, lịch xem phòng
+- Mở rộng tính năng tìm lịch xem phòng
 
 ## Hướng dẫn cài đặt
 
